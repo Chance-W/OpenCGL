@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.opencgl</groupId>
+    <artifactId>OpenCGL_New</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>15</maven.compiler.source>
+        <maven.compiler.target>15</maven.compiler.target>
+    </properties>
+    <profiles>
+        <profile>
+            <id>windows</id>
+            <properties>
+                <platform>windows</platform>
+            </properties>
+            <activation>
+                <!-- 设置默认激活这个配置 -->
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>mac</id>
+            <properties>
+                <platform>mac</platform>
+            </properties>
+        </profile>
+        <profile>
+            <id>linux</id>
+            <properties>
+                <platform>linux</platform>
+            </properties>
+        </profile>
+    </profiles>
+
+
+    <dependencies>
+        <!--javafx套件-->
+        <dependency>
+            <groupId>io.github.palexdev</groupId>
+            <artifactId>materialfx</artifactId>
+            <version>11.16.0</version>
+        </dependency>
+        <!--       <dependency>
+                   <groupId>io.github.palexdev</groupId>
+                   <artifactId>scenicview</artifactId>
+                   <version>17.0.2</version>
+               </dependency>-->
+        <!--       <dependency>
+                   <groupId>org.kordamp.ikonli</groupId>
+                   <artifactId>scenicView</artifactId>
+                   <version>12.3.1</version>
+               </dependency>-->
+        <dependency>
+            <groupId>fr.brouillard.oss</groupId>
+            <artifactId>cssfx</artifactId>
+            <version>11.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kordamp.ikonli</groupId>
+            <artifactId>ikonli-javafx</artifactId>
+            <version>12.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kordamp.ikonli</groupId>
+            <artifactId>ikonli-fontawesome5-pack</artifactId>
+            <version>12.3.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>19.0.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>19.0.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>19.0.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-swing</artifactId>
+            <version>19.0.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-web</artifactId>
+            <version>19.0.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-base</artifactId>
+            <version>19.0.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>19.0.2.1</version>
+        </dependency>
+        <!--fastJson-->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>2.0.32</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.26</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
+
+        <!-- slf log -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+
+        <!--sqllite连接驱动-->
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.42.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>2.0.32</version>
+        </dependency>
+
+        <!--插件式需单独依赖的插件-->
+        <!--dubbo依赖-->
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo</artifactId>
+            <version>3.2.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-x-discovery</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>3.6.3</version> <!-- 使用适当的版本 -->
+        </dependency>
+        <!--zookeeper-->
+      <!--  <dependency>
+            <groupId>com.101tec</groupId>
+            <artifactId>zkclient</artifactId>
+            <version>0.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>5.1.0</version> &lt;!&ndash; 请使用你需要的 Curator 版本 &ndash;&gt;
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-x-discovery</artifactId>
+            <version>5.1.0</version> &lt;!&ndash; 请使用你需要的 Curator 版本 &ndash;&gt;
+        </dependency>-->
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <optimize>true</optimize>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <finalName>OpenCGL</finalName>
+                    <archive>
+                        <!--生成的jar中，不要包含pom.xml和pom.properties这两个文件 -->
+                        <addMavenDescriptor>false</addMavenDescriptor>
+                        <manifest>
+                            <!--运行jar包时运行的主类，要求类全名-->
+                            <!--<mainClass>com.xtool.opencgl.AppLauncher</mainClass>-->
+                            <mainClass>com.opencgl.OpenCglStartApplication</mainClass>
+
+                            <!-- 是否指定项目classpath下的依赖 -->
+                            <addClasspath>true</addClasspath>
+                            <!-- 指定依赖的时候声明前缀 -->
+                            <classpathPrefix>./lib/</classpathPrefix>
+                            <useUniqueVersions>false</useUniqueVersions>
+                        </manifest>
+                    </archive>
+                    <excludes>
+                        <exclude>${project.basedir}/conf/</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <!--把当前项目所有的依赖打包到target目录下的lib文件夹下-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.8</version>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <!--已存在的Release版本不重复copy-->
+                            <overWriteReleases>false</overWriteReleases>
+                            <!--已存在的SnapShot版本不重复copy-->
+                            <overWriteSnapshots>false</overWriteSnapshots>
+                            <!--不存在或者有更新版本的依赖才copy-->
+                            <overWriteIfNewer>false</overWriteIfNewer>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>io.github.fvarrui</groupId>
+                <artifactId>javapackager</artifactId>
+                <version>1.7.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                        <configuration>
+                            <name>OpenCGL</name>
+                            <organizationName>Chance.W Personal</organizationName>
+                            <organizationUrl>https://www.tool-graphical.top</organizationUrl>
+                            <description>OpenCGL</description>
+                            <!-- mandatory -->
+                            <mainClass>com.opencgl.OpenCglStartApplication</mainClass>
+                            <!-- optional -->
+                            <bundleJre>true</bundleJre>
+                            <generateInstaller>true</generateInstaller>
+                            <administratorRequired>true</administratorRequired>
+                            <!--auto|linux|mac|windows-->
+                            <!-- <platform>windows</platform>-->
+                            <platform>${platform}</platform>
+                            <!--windows jdk-->
+                            <!--<jdkPath>/Users/chancew./Software/Java/zulu19-fx-win</jdkPath>-->
+                            <additionalResources>
+                                <additionalResource>src/main/resources/com</additionalResource>
+                                <additionalResource>src/main/resources/OpenCGL.l4j.ini</additionalResource>
+                            </additionalResources>
+                            <!--<assetsDir>${project.build.directory}/classes/com/xtool/opencgl/images/icon/</assetsDir>-->
+                            <winConfig>
+                                <icoFile>${project.build.directory}/classes/com/opencgl/icon/logo.ico
+                                </icoFile>
+                                <fileVersion>1.0.0.0</fileVersion>
+                                <txtFileVersion>${version}</txtFileVersion>
+                                <disableDirPage>false</disableDirPage>
+                                <disableFinishedPage>false</disableFinishedPage>
+                                <createDesktopIconTask>false</createDesktopIconTask>
+                            </winConfig>
+                            <linuxConfig>
+                                <pngFile>${project.build.directory}/classes//opencgl/images/icon/logo.png
+                                </pngFile>
+                                <generateAppImage>false</generateAppImage>
+                                <generateDeb>true</generateDeb>
+                                <generateRpm>true</generateRpm>
+                                <wrapJar>true</wrapJar>
+                                <categories>
+                                    <category>Utility</category>
+                                </categories>
+                            </linuxConfig>
+                            <macConfig>
+                                <appId>OpenCGL</appId>
+                                <icnsFile>{project.build.directory}/classes/com/opencgl/images/icon/icon.ico</icnsFile>
+                                <generateDmg>pkg</generateDmg>
+                                <generatePkg>false</generatePkg>
+                                <relocateJar>false</relocateJar>
+                                <!--SCRIPT|UNIVERSAL|X86_64|-->
+                                <macStartup>ARM64</macStartup>
+
+                                <!-- signing properties -->
+                                <developerId>OpenCGL</developerId>
+                                <!--<entitlements>src/main/resources/com.opencgl/mac/opencgl.plist</entitlements>-->
+                                <codesignApp>true</codesignApp>
+                                <hardenedCodesign>true</hardenedCodesign>
+
+                                <!-- properties used for DMG disk image generation -->
+                                <backgroundImage>${project.build.directory}/classes/com/opencgl/mac/icon/256.png
+                                </backgroundImage>
+                                <windowX>10</windowX>
+                                <windowY>10</windowY>
+                                <windowWidth>300</windowWidth>
+                                <windowHeight>300</windowHeight>
+                                <iconSize>100</iconSize>
+                                <textSize>100</textSize>
+                                <iconX>20</iconX>
+                                <iconY>20</iconY>
+                                <appsLinkIconX>30</appsLinkIconX>
+                                <appsLinkIconY>30</appsLinkIconY>
+                                <volumeIcon>{project.build.directory}/classes/com/opencgl/mac/icon/256.png</volumeIcon>
+                                <volumeName>${name}</volumeName>
+
+                                <!-- properties used for Info.plist file generation -->
+                                <infoPlist>
+                                    <!--|APPL|FMWK-->
+                                    <bundlePackageType>BNDL</bundlePackageType>
+                                </infoPlist>
+
+                            </macConfig>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--含依赖，但不包含jre的完整jar包，需要结合jdk19使用-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.5.5</version>
+                <configuration>
+                    <finalName>OpenCGL-Single</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <encoding>utf-8</encoding>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>com.opencgl.OpenCglStartApplication</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
