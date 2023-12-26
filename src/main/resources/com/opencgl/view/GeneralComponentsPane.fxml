@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import io.github.palexdev.materialfx.controls.MFXScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+<MFXScrollPane fx:id="generalComponentsGridPane" stylesheets="@../css/MFXScrollPane.css"
+               fx:controller="com.opencgl.controller.GeneralComponentsController"
+               fitToWidth="true"
+               xmlns="http://javafx.com/javafx/17"
+               xmlns:fx="http://javafx.com/fxml">
+    <FlowPane fx:id="flowPanel">
+
+    </FlowPane>
+</MFXScrollPane>
