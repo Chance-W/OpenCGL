@@ -10,7 +10,7 @@ import java.io.File;
  */
 public class BaseEnum {
 
-    public static final String ROOT_PATH = System.getProperty("user.home") + File.separator + ".opencgl" + File.separator;
+    public static final String ROOT_PATH = System.getProperty("user.home") + File.separator + ".opencgl_new" + File.separator;
 
     public static final String PLUGIN_PATH = ROOT_PATH + "ext-plugin" + File.separator;
 
