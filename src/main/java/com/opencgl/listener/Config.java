@@ -41,7 +41,7 @@ public class Config {
         for (Map.Entry<String, String> entry : configMap.entrySet()) {
             if (!map.get(entry.getKey()).equals(entry.getValue())) {
                 configMap.putAll(map);
-                FileUtils.write(file, JSON.toJSONString(configMap), Charset.forName(StandardCharsets.UTF_8.name()));
+                FileUtils.write(file, JSON.toJSONString(configMap), StandardCharsets.UTF_8);
             }
         }
     }
@@ -50,18 +50,18 @@ public class Config {
         File file = new File(BASE_CONF_FILE);
         try {
             if (!file.getParentFile().exists()) {
-                boolean res = file.mkdirs();
+                boolean res = file.getParentFile().mkdirs();
                 logger.debug("create file is {}", res);
             }
             if (!file.exists()) {
                 boolean mkdirs = file.createNewFile();
                 if (mkdirs) {
                     configMap.put(Properties.PLUGIN_PATH_KEY, PLUGIN_PATH);
-                    FileUtils.write(file, JSON.toJSONString(configMap), Charset.forName(StandardCharsets.UTF_8.name()));
+                    FileUtils.write(file, JSON.toJSONString(configMap), StandardCharsets.UTF_8);
                 }
             }
 
-            String jsonString = FileUtils.readFileToString(file, Charset.forName(StandardCharsets.UTF_8.name()));
+            String jsonString = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
             configMap.putAll(JSON.parseObject(jsonString, Map.class));
         }
         catch (IOException e) {
