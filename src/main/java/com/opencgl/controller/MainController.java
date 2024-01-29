@@ -209,7 +209,9 @@ public class MainController implements Initializable {
             Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
             double screenWidth = primaryScreenBounds.getWidth();
             double screenHeight = primaryScreenBounds.getHeight();
-            if ((stage.getX() == 0.0 || stage.getY() == 0.0) && stage.getHeight() == screenHeight && stage.getWidth() == screenWidth) {
+            if ((stage.getX() == 0.0 || stage.getY() == 0.0)
+                && stage.getHeight() == screenHeight
+                && stage.getWidth() == screenWidth) {
                 maxTip.setText(I18N.getOrDefault("oepncgl.main.max.text"));
                 stage.setY(yOffset);
                 stage.setX(xOffset);
@@ -246,7 +248,7 @@ public class MainController implements Initializable {
             DialogUtil.showErrorInfo(e.getMessage());
         }
         catch (Exception e) {
-            e.printStackTrace();
+            logger.error("", e);
         }
         ScrollUtils.addSmoothScrolling(scrollPane);
         // The only way to get a fucking smooth image in this shitty framework
@@ -290,7 +292,7 @@ public class MainController implements Initializable {
                                 DialogUtil.showErrorInfo(e.getMessage());
                             }
                             catch (Exception e) {
-                                e.printStackTrace();
+                                logger.error("", e);
                             }
                         }
                     }
@@ -364,9 +366,12 @@ public class MainController implements Initializable {
         vBox.getChildren().addAll(header, body);
 
         FXMLLoader fxmlLoader = new FXMLLoader();
-        PluginClassLoader pluginClassLoader = PluginClassLoader.create(new File(Config.readConfigure(Properties.PLUGIN_PATH_KEY) + menuInfo.getJarName()));
-        FXMLLoader pluginFxmlLoader = (FXMLLoader) pluginClassLoader.loadClass("javafx.fxml.FXMLLoader").getDeclaredConstructor().newInstance();
-        fxmlLoader.setLocation(pluginClassLoader.getResource(menuInfo.getFxmlPath()));
+        try (PluginClassLoader pluginClassLoader = PluginClassLoader
+            .create(
+                new File(Config.readConfigure(Properties.PLUGIN_PATH_KEY) + menuInfo.getJarName()))) {
+            FXMLLoader pluginFxmlLoader = (FXMLLoader) pluginClassLoader.loadClass("javafx.fxml.FXMLLoader").getDeclaredConstructor().newInstance();
+            fxmlLoader.setLocation(pluginClassLoader.getResource(menuInfo.getFxmlPath()));
+        }
         vBox.setOnMouseClicked(new EventHandler<>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
@@ -387,13 +392,16 @@ public class MainController implements Initializable {
                         URL resource = pluginClassLoader.getResource(menuInfo.getFxmlPath());
                         pluginFxmlLoader.setLocation(resource);
                         tab.setContent(pluginFxmlLoader.load());
+
                         ObservableList<Node> nodes = navBar.getChildren();
                         removeSelectedToggleButton(nodes);
+
                         contentPane.getChildren().setAll(componentJfxTabPane);
+
                         tab.setOnClosed(event -> {
                             try {
                                 pluginClassLoader.close();
-                                if (componentJfxTabPane.getTabs().size() == 0) {
+                                if (componentJfxTabPane.getTabs().isEmpty()) {
                                     ToggleButton homePaneToggleButton = (ToggleButton) navBar.getChildren().get(0);
                                     contentPane.getChildren().setAll(homeRootPane);
                                     homePaneToggleButton.setSelected(true);
