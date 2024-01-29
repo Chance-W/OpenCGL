@@ -145,6 +145,8 @@ public class MainController implements Initializable {
 
     private final SettingPane settingPane = new SettingPane();
 
+    private final Tooltip maxTip = new Tooltip(I18N.getOrDefault("oepncgl.main.max.text"));
+
 
     public MainController(Stage stage) {
         this.stage = stage;
@@ -183,6 +185,8 @@ public class MainController implements Initializable {
             }
         });
 
+        windowHeader.addEventHandler(MouseEvent.MOUSE_PRESSED, new DoubleClickHandler());
+
         closeIcon.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             Platform.exit();
             System.exit(0);
@@ -196,7 +200,7 @@ public class MainController implements Initializable {
         minTip.setShowDelay(Duration.ZERO);
         Tooltip.install(minimizeIcon, minTip);
 
-        Tooltip maxTip = new Tooltip(I18N.getOrDefault("oepncgl.main.max.text"));
+
         Tooltip.install(maximizeIcon, maxTip);
         maxTip.setShowDelay(Duration.ZERO);
 
@@ -205,29 +209,7 @@ public class MainController implements Initializable {
         settingTip.setShowDelay(Duration.ZERO);
         Tooltip.install(settingIcon, settingTip);
 
-        maximizeIcon.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-            Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
-            double screenWidth = primaryScreenBounds.getWidth();
-            double screenHeight = primaryScreenBounds.getHeight();
-            if ((stage.getX() == 0.0 || stage.getY() == 0.0)
-                && stage.getHeight() == screenHeight
-                && stage.getWidth() == screenWidth) {
-                maxTip.setText(I18N.getOrDefault("oepncgl.main.max.text"));
-                stage.setY(yOffset);
-                stage.setX(xOffset);
-                stage.setWidth(rootPane.getPrefWidth());
-                stage.setHeight(rootPane.getPrefHeight());
-            }
-            else {
-                xOffset = stage.getX();
-                yOffset = stage.getY();
-                stage.setX(0);
-                stage.setY(0);
-                stage.setWidth(screenWidth);
-                stage.setHeight(screenHeight);
-                maxTip.setText("还原窗口");
-            }
-        });
+        maximizeIcon.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> autoFillWindows());
 
         Tooltip movePosition = new Tooltip(I18N.getOrDefault("oepncgl.main.movePosition.text"));
         Tooltip.install(autoGroupHBox, movePosition);
@@ -259,6 +241,30 @@ public class MainController implements Initializable {
         clip.centerYProperty().bind(logo.layoutBoundsProperty().map(Bounds::getCenterY));
         logo.setClip(clip);
         logoContainer.getChildren().add(logo);
+    }
+
+    private void autoFillWindows() {
+        Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
+        double screenWidth = primaryScreenBounds.getWidth();
+        double screenHeight = primaryScreenBounds.getHeight();
+        if ((stage.getX() == 0.0 || stage.getY() == 0.0)
+            && stage.getHeight() == screenHeight
+            && stage.getWidth() == screenWidth) {
+            maxTip.setText(I18N.getOrDefault("oepncgl.main.max.text"));
+            stage.setY(yOffset);
+            stage.setX(xOffset);
+            stage.setWidth(rootPane.getPrefWidth());
+            stage.setHeight(rootPane.getPrefHeight());
+        }
+        else {
+            xOffset = stage.getX();
+            yOffset = stage.getY();
+            stage.setX(0);
+            stage.setY(0);
+            stage.setWidth(screenWidth);
+            stage.setHeight(screenHeight);
+            maxTip.setText("还原窗口");
+        }
     }
 
     private void initializeLoader() throws Exception {
@@ -469,6 +475,26 @@ public class MainController implements Initializable {
             .addItems(switchToTabPageMenuItem)
             .addSeparator(MFXContextMenu.Builder.getLineSeparator())
             .installAndGet();
+    }
+
+
+    // 自定义鼠标点击事件处理程序
+    private class DoubleClickHandler implements EventHandler<MouseEvent> {
+        private long lastClickTime = 0;
+
+        @Override
+        public void handle(MouseEvent event) {
+            if (event.getButton() == MouseButton.PRIMARY) {
+                long currentTime = System.currentTimeMillis();
+                // 判断是否在双击时间间隔内进行了两次点击
+                // 定义双击时间间隔（毫秒）
+                int DOUBLE_CLICK_TIME_GAP = 300;
+                if (currentTime - lastClickTime < DOUBLE_CLICK_TIME_GAP) {
+                    autoFillWindows();
+                }
+                lastClickTime = currentTime;
+            }
+        }
     }
 
 
