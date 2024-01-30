@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -185,8 +186,6 @@ public class MainController implements Initializable {
             }
         });
 
-        windowHeader.addEventHandler(MouseEvent.MOUSE_PRESSED, new DoubleClickHandler());
-
         closeIcon.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             Platform.exit();
             System.exit(0);
@@ -213,13 +212,34 @@ public class MainController implements Initializable {
 
         Tooltip movePosition = new Tooltip(I18N.getOrDefault("oepncgl.main.movePosition.text"));
         Tooltip.install(autoGroupHBox, movePosition);
+
+        autoGroupHBox.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<>() {
+            private long lastClickTime = 0;
+
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.getButton() == MouseButton.PRIMARY) {
+                    long currentTime = System.currentTimeMillis();
+                    // 判断是否在双击时间间隔内进行了两次点击
+                    // 定义双击时间间隔（毫秒）
+                    int DOUBLE_CLICK_TIME_GAP = 300;
+                    if (currentTime - lastClickTime < DOUBLE_CLICK_TIME_GAP) {
+                        Platform.runLater(MainController.this::autoFillWindows);
+                    }
+                    lastClickTime = currentTime;
+                }
+            }
+        });
+
+        AtomicReference<Double> xOffsetTest = new AtomicReference<>((double) 0);
+        AtomicReference<Double> yOffsetTest = new AtomicReference<>((double) 0);
         autoGroupHBox.setOnMousePressed(event -> {
-            xOffset = stage.getX() - event.getScreenX();
-            yOffset = stage.getY() - event.getScreenY();
+            xOffsetTest.set(stage.getX() - event.getScreenX());
+            yOffsetTest.set(stage.getY() - event.getScreenY());
         });
         autoGroupHBox.setOnMouseDragged(event -> {
-            stage.setX(event.getScreenX() + xOffset);
-            stage.setY(event.getScreenY() + yOffset);
+            stage.setX(event.getScreenX() + xOffsetTest.get());
+            stage.setY(event.getScreenY() + yOffsetTest.get());
         });
 
         try {
@@ -250,7 +270,7 @@ public class MainController implements Initializable {
         if ((stage.getX() == 0.0 || stage.getY() == 0.0)
             && stage.getHeight() == screenHeight
             && stage.getWidth() == screenWidth) {
-            maxTip.setText(I18N.getOrDefault("oepncgl.main.max.text"));
+            maxTip.setText(I18N.getOrDefault("oepncgl.main.max.maximize"));
             stage.setY(yOffset);
             stage.setX(xOffset);
             stage.setWidth(rootPane.getPrefWidth());
@@ -259,11 +279,12 @@ public class MainController implements Initializable {
         else {
             xOffset = stage.getX();
             yOffset = stage.getY();
+
             stage.setX(0);
             stage.setY(0);
             stage.setWidth(screenWidth);
             stage.setHeight(screenHeight);
-            maxTip.setText("还原窗口");
+            maxTip.setText(I18N.getOrDefault("oepncgl.main.max.reduction"));
         }
     }
 
@@ -432,7 +453,6 @@ public class MainController implements Initializable {
                 }
             }
         });
-        /*  vBox.setOnMouseClicked(event -> );*/
         return vBox;
     }
 
@@ -476,26 +496,4 @@ public class MainController implements Initializable {
             .addSeparator(MFXContextMenu.Builder.getLineSeparator())
             .installAndGet();
     }
-
-
-    // 自定义鼠标点击事件处理程序
-    private class DoubleClickHandler implements EventHandler<MouseEvent> {
-        private long lastClickTime = 0;
-
-        @Override
-        public void handle(MouseEvent event) {
-            if (event.getButton() == MouseButton.PRIMARY) {
-                long currentTime = System.currentTimeMillis();
-                // 判断是否在双击时间间隔内进行了两次点击
-                // 定义双击时间间隔（毫秒）
-                int DOUBLE_CLICK_TIME_GAP = 300;
-                if (currentTime - lastClickTime < DOUBLE_CLICK_TIME_GAP) {
-                    autoFillWindows();
-                }
-                lastClickTime = currentTime;
-            }
-        }
-    }
-
-
 }
