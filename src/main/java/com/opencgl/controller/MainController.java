@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ import com.opencgl.selfpane.CglTabPane;
 import com.opencgl.selfpane.OpenCGLVbox;
 import com.opencgl.selfpane.SettingPane;
 import com.opencgl.util.DialogUtil;
+import com.opencgl.util.LoadingUtil;
 import com.opencgl.util.PluginClassLoader;
 import com.opencgl.util.PluginParserHelper;
 import com.opencgl.util.RandomNumberGeneratorUtil;
@@ -187,9 +189,10 @@ public class MainController implements Initializable {
         });
 
         closeIcon.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-            Platform.exit();
             System.exit(0);
+            Platform.exit();
         });
+
         Tooltip closeTip = new Tooltip(I18N.getOrDefault("oepncgl.main.close.text"));
         closeTip.setShowDelay(Duration.ZERO);
         Tooltip.install(closeIcon, closeTip);
@@ -408,49 +411,59 @@ public class MainController implements Initializable {
                     contentPane.getChildren().setAll(componentJfxTabPane);
                     return;
                 }
-                Tab tab = new Tab();
-                tab.setClosable(true);
-                tab.setText(menuInfo.getMenuName());
-                try {
-                    if (StringUtils.isNotEmpty(menuInfo.getJarName())) {
-                        PluginClassLoader pluginClassLoader = PluginClassLoader.create(new File(Config.readConfigure(Properties.PLUGIN_PATH_KEY) + File.separator + menuInfo.getJarName()));
-                        FXMLLoader pluginFxmlLoader = (FXMLLoader) pluginClassLoader.loadClass("javafx.fxml.FXMLLoader").getDeclaredConstructor().newInstance();
-                        pluginFxmlLoader.setClassLoader(pluginClassLoader);
-                        URL resource = pluginClassLoader.getResource(menuInfo.getFxmlPath());
-                        pluginFxmlLoader.setLocation(resource);
-                        tab.setContent(pluginFxmlLoader.load());
+                CompletableFuture.runAsync(() -> {
+                       Platform.runLater(() -> LoadingUtil.show(contentPane));
+                        Tab tab = new Tab();
+                        tab.setClosable(true);
+                        tab.setText(menuInfo.getMenuName());
+                        try {
+                            if (StringUtils.isNotEmpty(menuInfo.getJarName())) {
+                                PluginClassLoader pluginClassLoader = PluginClassLoader.create(new File(Config.readConfigure(Properties.PLUGIN_PATH_KEY) + File.separator + menuInfo.getJarName()));
+                                FXMLLoader pluginFxmlLoader = (FXMLLoader) pluginClassLoader.loadClass("javafx.fxml.FXMLLoader").getDeclaredConstructor().newInstance();
+                                pluginFxmlLoader.setClassLoader(pluginClassLoader);
+                                URL resource = pluginClassLoader.getResource(menuInfo.getFxmlPath());
+                                pluginFxmlLoader.setLocation(resource);
+                                tab.setContent(pluginFxmlLoader.load());
+                                ObservableList<Node> nodes = navBar.getChildren();
+                                removeSelectedToggleButton(nodes);
 
-                        ObservableList<Node> nodes = navBar.getChildren();
-                        removeSelectedToggleButton(nodes);
+                               Platform.runLater(() -> contentPane.getChildren().setAll(componentJfxTabPane));
 
-                        contentPane.getChildren().setAll(componentJfxTabPane);
-
-                        tab.setOnClosed(event -> {
-                            try {
-                                pluginClassLoader.close();
-                                if (componentJfxTabPane.getTabs().isEmpty()) {
-                                    ToggleButton homePaneToggleButton = (ToggleButton) navBar.getChildren().get(0);
-                                    contentPane.getChildren().setAll(homeRootPane);
-                                    homePaneToggleButton.setSelected(true);
-                                }
+                                tab.setOnClosed(event -> {
+                                    try {
+                                        pluginClassLoader.close();
+                                        if (componentJfxTabPane.getTabs().isEmpty()) {
+                                            Platform.runLater(() -> {
+                                                ToggleButton homePaneToggleButton = (ToggleButton) navBar.getChildren().get(0);
+                                                contentPane.getChildren().setAll(homeRootPane);
+                                                homePaneToggleButton.setSelected(true);
+                                            });
+                                        }
+                                    }
+                                    catch (IOException e) {
+                                        logger.error("", e);
+                                      Platform.runLater(() -> DialogUtil.showErrorInfo(e.getMessage()));
+                                    }
+                                });
                             }
-                            catch (IOException e) {
-                                logger.error("", e);
-                                DialogUtil.showErrorInfo(e.getMessage());
+                            else {
+                                tab.setContent(FXMLLoader.load(Objects.requireNonNull(getClass().getClassLoader().getResource(menuInfo.getFxmlPath()))));
                             }
-                        });
-                    }
-                    else {
-                        tab.setContent(FXMLLoader.load(Objects.requireNonNull(getClass().getClassLoader().getResource(menuInfo.getFxmlPath()))));
-                    }
-                    componentJfxTabPane.getTabs().add(tab);
-                    componentJfxTabPane.getSelectionModel().select(tab);
+                            Platform.runLater(() -> {
+                                componentJfxTabPane.getTabs().add(tab);
+                                componentJfxTabPane.getSelectionModel().select(tab);
+                            });
 
-                }
-                catch (Exception e) {
-                    logger.error("", e);
-                    DialogUtil.showErrorInfo(e.getMessage());
-                }
+                        }
+                        catch (Exception e) {
+                            logger.error("", e);
+                            Platform.runLater(() -> DialogUtil.showErrorInfo(e.getMessage()));
+
+                        }
+                        finally {
+                            Platform.runLater(() -> LoadingUtil.remove(contentPane));
+                        }
+                    });
             }
         });
         return vBox;
