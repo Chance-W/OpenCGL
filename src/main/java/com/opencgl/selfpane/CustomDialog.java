@@ -1,5 +1,7 @@
 package com.opencgl.selfpane;
 
+import java.util.Objects;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.opencgl.i18n.I18N;
@@ -44,7 +46,7 @@ public class CustomDialog extends Dialog<String> {
     private void initCustomDialog() {
         initStyle(StageStyle.UNDECORATED);
         initModality(Modality.APPLICATION_MODAL);
-        getDialogPane().getStylesheets().setAll(this.getClass().getResource("/com/opencgl/base/css/opencgl-dialog.css").toExternalForm());
+        getDialogPane().getStylesheets().setAll(Objects.requireNonNull(this.getClass().getResource("/com/opencgl/css/opencgl-dialog.css")).toExternalForm());
         getDialogPane().getStyleClass().setAll("opencgl-dialog");
 
 

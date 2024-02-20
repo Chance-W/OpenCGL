@@ -1,5 +1,7 @@
 package com.opencgl.selfpane;
 
+import java.util.Objects;
+
 import com.opencgl.i18n.I18N;
 import io.github.palexdev.materialfx.controls.MFXButton;
 import io.github.palexdev.materialfx.enums.ButtonType;
@@ -38,7 +40,7 @@ public class CustomInfoDialog extends Dialog<Void> {
     private void initCustomDialog() {
         initStyle(StageStyle.UNDECORATED);
         initModality(Modality.APPLICATION_MODAL);
-        getDialogPane().getStylesheets().setAll(this.getClass().getResource("/com/opencgl/base/css/opencgl-dialog.css").toExternalForm());
+        getDialogPane().getStylesheets().setAll(Objects.requireNonNull(this.getClass().getResource("/com/opencgl/css/opencgl-dialog.css")).toExternalForm());
         getDialogPane().getStyleClass().add(0, "opencgl-dialog");
         VBox alertVBox = new VBox();
         alertVBox.setMinWidth(400.0);

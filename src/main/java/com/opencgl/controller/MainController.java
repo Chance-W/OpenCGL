@@ -412,58 +412,57 @@ public class MainController implements Initializable {
                     return;
                 }
                 CompletableFuture.runAsync(() -> {
-                       Platform.runLater(() -> LoadingUtil.show(contentPane));
-                        Tab tab = new Tab();
-                        tab.setClosable(true);
-                        tab.setText(menuInfo.getMenuName());
-                        try {
-                            if (StringUtils.isNotEmpty(menuInfo.getJarName())) {
-                                PluginClassLoader pluginClassLoader = PluginClassLoader.create(new File(Config.readConfigure(Properties.PLUGIN_PATH_KEY) + File.separator + menuInfo.getJarName()));
-                                FXMLLoader pluginFxmlLoader = (FXMLLoader) pluginClassLoader.loadClass("javafx.fxml.FXMLLoader").getDeclaredConstructor().newInstance();
-                                pluginFxmlLoader.setClassLoader(pluginClassLoader);
-                                URL resource = pluginClassLoader.getResource(menuInfo.getFxmlPath());
-                                pluginFxmlLoader.setLocation(resource);
-                                tab.setContent(pluginFxmlLoader.load());
-                                ObservableList<Node> nodes = navBar.getChildren();
-                                removeSelectedToggleButton(nodes);
+                    Platform.runLater(() -> LoadingUtil.show(contentPane));
+                    Tab tab = new Tab();
+                    tab.setClosable(true);
+                    tab.setText(menuInfo.getMenuName());
+                    try {
+                        if (StringUtils.isNotEmpty(menuInfo.getJarName())) {
+                            PluginClassLoader pluginClassLoader = PluginClassLoader.create(new File(Config.readConfigure(Properties.PLUGIN_PATH_KEY) + File.separator + menuInfo.getJarName()));
+                            FXMLLoader pluginFxmlLoader = (FXMLLoader) pluginClassLoader.loadClass("javafx.fxml.FXMLLoader").getDeclaredConstructor().newInstance();
+                            pluginFxmlLoader.setClassLoader(pluginClassLoader);
+                            URL resource = pluginClassLoader.getResource(menuInfo.getFxmlPath());
+                            pluginFxmlLoader.setLocation(resource);
+                            tab.setContent(pluginFxmlLoader.load());
+                            ObservableList<Node> nodes = navBar.getChildren();
+                            removeSelectedToggleButton(nodes);
 
-                               Platform.runLater(() -> contentPane.getChildren().setAll(componentJfxTabPane));
+                            Platform.runLater(() -> contentPane.getChildren().setAll(componentJfxTabPane));
 
-                                tab.setOnClosed(event -> {
-                                    try {
-                                        pluginClassLoader.close();
-                                        if (componentJfxTabPane.getTabs().isEmpty()) {
-                                            Platform.runLater(() -> {
-                                                ToggleButton homePaneToggleButton = (ToggleButton) navBar.getChildren().get(0);
-                                                contentPane.getChildren().setAll(homeRootPane);
-                                                homePaneToggleButton.setSelected(true);
-                                            });
-                                        }
+                            tab.setOnClosed(event -> {
+                                try {
+                                    pluginClassLoader.close();
+                                    if (componentJfxTabPane.getTabs().isEmpty()) {
+                                        Platform.runLater(() -> {
+                                            ToggleButton homePaneToggleButton = (ToggleButton) navBar.getChildren().get(0);
+                                            contentPane.getChildren().setAll(homeRootPane);
+                                            homePaneToggleButton.setSelected(true);
+                                        });
                                     }
-                                    catch (IOException e) {
-                                        logger.error("", e);
-                                      Platform.runLater(() -> DialogUtil.showErrorInfo(e.getMessage()));
-                                    }
-                                });
-                            }
-                            else {
-                                tab.setContent(FXMLLoader.load(Objects.requireNonNull(getClass().getClassLoader().getResource(menuInfo.getFxmlPath()))));
-                            }
-                            Platform.runLater(() -> {
-                                componentJfxTabPane.getTabs().add(tab);
-                                componentJfxTabPane.getSelectionModel().select(tab);
+                                }
+                                catch (IOException e) {
+                                    logger.error("", e);
+                                    Platform.runLater(() -> DialogUtil.showErrorInfo(e.getMessage()));
+                                }
                             });
+                        }
+                        else {
+                            tab.setContent(FXMLLoader.load(Objects.requireNonNull(getClass().getClassLoader().getResource(menuInfo.getFxmlPath()))));
+                        }
+                        Platform.runLater(() -> {
+                            componentJfxTabPane.getTabs().add(tab);
+                            componentJfxTabPane.getSelectionModel().select(tab);
+                        });
 
-                        }
-                        catch (Exception e) {
-                            logger.error("", e);
-                            Platform.runLater(() -> DialogUtil.showErrorInfo(e.getMessage()));
-
-                        }
-                        finally {
-                            Platform.runLater(() -> LoadingUtil.remove(contentPane));
-                        }
-                    });
+                    }
+                    catch (Exception e) {
+                        logger.error("", e);
+                        Platform.runLater(() -> DialogUtil.showErrorInfo(I18N.getOrDefault("opencgl.mainWindows.loadPlugin.error") + e.getMessage()));
+                    }
+                    finally {
+                        Platform.runLater(() -> LoadingUtil.remove(contentPane));
+                    }
+                });
             }
         });
         return vBox;
