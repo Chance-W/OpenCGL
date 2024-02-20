@@ -408,6 +408,10 @@ public class MainController implements Initializable {
                 Long i = tabValidate(menuInfo.getMenuName(), componentJfxTabPane.getTabs());
                 if (i != 0) {
                     componentJfxTabPane.getSelectionModel().select(Math.toIntExact(i - 1));
+                    // 移除选中
+                    ObservableList<Node> nodes = navBar.getChildren();
+                    removeSelectedToggleButton(nodes);
+
                     contentPane.getChildren().setAll(componentJfxTabPane);
                     return;
                 }
