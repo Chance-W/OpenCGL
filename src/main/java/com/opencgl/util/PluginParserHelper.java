@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -19,7 +20,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.opencgl.listener.Config;
 import com.opencgl.model.MenuInfo;
 import com.opencgl.model.PluginInfo;
-import com.opencgl.model.Properties;
+import com.opencgl.model.OpenCGLSelfProperties;
 
 /**
  * @author Chance.W
@@ -32,23 +33,24 @@ import com.opencgl.model.Properties;
 public class PluginParserHelper {
     private static final Logger logger = LoggerFactory.getLogger(PluginParserHelper.class);
 
-    public final static List<MenuInfo> MENU_INFOS = new ArrayList<>();
+    public final static List<MenuInfo> MENU_INFOS = new ArrayList<>(32);
 
     private static final String COMPONENT_NAME = "com/opencgl/config/menuComponent.json";
 
     public static List<MenuInfo> analysisComponentJson() throws Exception {
         try {
-            if (MENU_INFOS.size() != 0) {
+            if (CollectionUtils.isNotEmpty(MENU_INFOS)) {
                 //此处优化会导致新增插件包必须重启应用才能生效,减少不必要的重复解析文件
-                return MENU_INFOS;
+                //  return MENU_INFOS;
+                MENU_INFOS.clear();
             }
-       /*     InputStream stream = MainController.class.getClassLoader().getResourceAsStream(COMPONENT_NAME);
+       /*   InputStream stream = MainController.class.getClassLoader().getResourceAsStream(COMPONENT_NAME);
             assert stream != null;
             String content = IOUtils.toString(stream, StandardCharsets.UTF_8);
-            *//*  List<MenuInfo>*//*
+             List<MenuInfo>
             MENU_INFOS.addAll(JSONArray.parseArray(content, MenuInfo.class));*/
 
-            File pluginFile = new File(Config.readConfigure(Properties.PLUGIN_PATH_KEY));
+            File pluginFile = new File(Config.readExternalConfigure(OpenCGLSelfProperties.PLUGIN_PATH_KEY));
             if (!pluginFile.exists()) {
                 boolean mkdirs = pluginFile.mkdirs();
                 logger.debug("create plugin file result is [{}]", mkdirs);
@@ -85,24 +87,23 @@ public class PluginParserHelper {
     }
 
     private static List<PluginInfo> initParse(File pluginFile) throws Exception {
-        JarFile jarFile = new JarFile(pluginFile);
-        JarEntry entry = jarFile.getJarEntry("plugin-info.json");
+        try (JarFile jarFile = new JarFile(pluginFile)) {
+            JarEntry entry = jarFile.getJarEntry("plugin-info.json");
+            List<PluginInfo> pluginInfos = new ArrayList<>();
+            if (entry == null) {
+                throw new Exception("插件包不存在或配置不符合规格");
+            }
+            InputStream input = jarFile.getInputStream(entry);
+            Object object = JSONObject.parse(IOUtils.toString(input, StandardCharsets.UTF_8));
 
-        List<PluginInfo> pluginInfos = new ArrayList<>();
-
-        if (entry == null) {
-            throw new Exception("插件包不存在或配置不符合规格");
+            if (object instanceof JSONObject) {
+                pluginInfos.add(((JSONObject) object).toJavaObject(PluginInfo.class));
+            }
+            else if (object instanceof JSONArray) {
+                pluginInfos.addAll(((JSONArray) object).toJavaList(PluginInfo.class));
+            }
+            return pluginInfos;
         }
-        InputStream input = jarFile.getInputStream(entry);
-        Object object = JSONObject.parse(IOUtils.toString(input, StandardCharsets.UTF_8));
-
-        if (object instanceof JSONObject) {
-            pluginInfos.add(((JSONObject) object).toJavaObject(PluginInfo.class));
-        }
-        else if (object instanceof JSONArray) {
-            pluginInfos.addAll(((JSONArray) object).toJavaList(PluginInfo.class));
-        }
-        return pluginInfos;
     }
 
     public static InputStream getFileInputStream(File pluginFile, String filePath) throws Exception {
@@ -113,6 +114,4 @@ public class PluginParserHelper {
         }
         return jarFile.getInputStream(jarEntry);
     }
-
-
 }

@@ -24,13 +24,18 @@
                 <Insets left="260.0"/>
             </HBox.margin>
         </MFXFontIcon>
+        <MFXFontIcon fx:id="switchToTabPageIcon" description="fas-bars-staggered" size="15.0" styleClass="handUp-icon"/>
         <HBox fx:id="autoGroupHBox" HBox.hgrow="ALWAYS"/>
+        <MFXFontIcon fx:id="questionIcon" description="fas-question" size="15.0" styleClass="setting-icon"/>
+        <MFXFontIcon fx:id="upgradeCheckIcon" description="fas-angles-up" size="15.0" styleClass="setting-icon"/>
+        <MFXFontIcon fx:id="dropDownIcon" description="fas-angle-down" size="15.0" styleClass="setting-icon"/>
         <MFXFontIcon fx:id="settingIcon" description="fas-gears" size="15.0" styleClass="setting-icon"/>
         <MFXFontIcon fx:id="minimizeIcon" description="fas-circle" size="15.0" styleClass="minimize-icon"/>
         <MFXFontIcon fx:id="maximizeIcon" description="fas-circle" size="15.0" styleClass="maximize-icon"/>
         <MFXFontIcon fx:id="closeIcon" description="fas-circle" size="15.0" styleClass="close-icon"/>
     </HBox>
-    <VBox fx:id="sidebar" layoutX="227.0" layoutY="51.0" prefWidth="250.0" styleClass="sidebar" AnchorPane.bottomAnchor="0.0"
+    <VBox fx:id="sidebar" layoutX="227.0" layoutY="51.0" prefWidth="250.0" styleClass="sidebar"
+          AnchorPane.bottomAnchor="0.0"
           AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
         <padding>
             <Insets bottom="10.0" left="10.0" top="40.0"/>

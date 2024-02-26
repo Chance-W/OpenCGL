@@ -35,3 +35,18 @@
 .text-field .floating-text {
     -fx-font-family: 'Visby Round CF Medium';
 }
+
+.opencgl-dialog .text-area {
+    -fx-background-color: transparent;
+}
+
+.opencgl-dialog .text-area .scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.opencgl-dialog .text-area .scroll-pane .viewport{
+    -fx-background-color: transparent;
+}
+.opencgl-dialog .text-area .scroll-pane .content{
+    -fx-background-color: transparent;
+}

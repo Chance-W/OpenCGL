@@ -5,13 +5,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.opencgl.i18n.I18N;
 import com.opencgl.listener.Config;
-import com.opencgl.model.Properties;
+import com.opencgl.model.OpenCGLSelfProperties;
 import com.opencgl.util.DialogUtil;
 import com.opencgl.util.TooltipUtil;
 import io.github.palexdev.materialfx.controls.MFXButton;
@@ -22,6 +23,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -48,7 +51,7 @@ public class SettingPane {
     private static final Map<String, String> configMap = new HashMap<>();
 
     private void init(Pane root) {
-        if (vBox.getChildren().size() > 0) {
+        if (!vBox.getChildren().isEmpty()) {
             return;
         }
         Label headerLabel = new Label("设置全局配置");
@@ -68,7 +71,7 @@ public class SettingPane {
         MFXTextField pluginTextField = new MFXTextField();
         pluginTextField.setEditable(false);
         pluginTextField.setPrefSize(400, 20);
-        pluginTextField.setText(Config.readConfigure(Properties.PLUGIN_PATH_KEY));
+        pluginTextField.setText(Config.readExternalConfigure(OpenCGLSelfProperties.PLUGIN_PATH_KEY));
 
         MFXButton choosePluginButton = new MFXButton("...");
         choosePluginButton.setButtonType(ButtonType.RAISED);
@@ -103,7 +106,6 @@ public class SettingPane {
 
                 }
             }
-
         });
 
         HBox pluginPathHBox = new HBox();
@@ -119,12 +121,12 @@ public class SettingPane {
 
 
         MFXButton confirmButton = new MFXButton(I18N.getOrDefault("opencgl.main.button.confirm"));
-        confirmButton.getStylesheets().setAll(SettingPane.class.getResource("/com/opencgl/css/opencgl-dialog.css").toExternalForm());
+        confirmButton.getStylesheets().setAll(Objects.requireNonNull(SettingPane.class.getResource("/com/opencgl/css/opencgl-dialog.css")).toExternalForm());
         confirmButton.setOnAction(event -> {
             Map<String, String> pluginPathMap = new HashMap<>();
-            pluginPathMap.put(Properties.PLUGIN_PATH_KEY, pluginTextField.getText());
+            pluginPathMap.put(OpenCGLSelfProperties.PLUGIN_PATH_KEY, pluginTextField.getText());
             try {
-                Config.updateConfig(pluginPathMap);
+                Config.updateExternalConfigure(pluginPathMap);
                 TooltipUtil.showToast("修改成功！");
             }
             catch (IOException e) {
@@ -135,8 +137,17 @@ public class SettingPane {
         });
 
         MFXButton cancelButton = new MFXButton(I18N.getOrDefault("opencgl.main.button.cancel"));
-        cancelButton.getStylesheets().setAll(SettingPane.class.getResource("/com/opencgl/css/opencgl-dialog.css").toExternalForm());
+        cancelButton.getStylesheets().setAll(Objects.requireNonNull(SettingPane.class.getResource("/com/opencgl/css/opencgl-dialog.css")).toExternalForm());
         cancelButton.setOnAction(event -> Platform.runLater(() -> remove(root)));
+
+        stackPane.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                confirmButton.fire();
+            }
+            else if (event.getCode() == KeyCode.ESCAPE) {
+                cancelButton.fire();
+            }
+        });
 
         HBox buttonHBox = new HBox();
         buttonHBox.setAlignment(Pos.CENTER_RIGHT);
@@ -149,7 +160,10 @@ public class SettingPane {
 
     public void show(Pane root) {
         init(root);
-        Platform.runLater(() -> root.getChildren().add(stackPane));
+        Platform.runLater(() -> {
+            root.getChildren().add(stackPane);
+            stackPane.requestFocus();
+        });
     }
 
     public void remove(Pane root) {

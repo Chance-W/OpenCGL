@@ -58,9 +58,10 @@ public class LoadingUtil {
     }
 
     public static void remove(Pane root) {
-        if (timeoutTask.isRunning()) {
-            timeoutTask.cancel();
-        }
+        /*    if (timeoutTask.isRunning()) {*/
+        //      timeoutTask.cancel();
+        // }
+        timeoutTask.cancel();
         Platform.runLater(() -> {
             closeButton.setVisible(false);
             root.getChildren().remove(stackPane);
@@ -76,6 +77,7 @@ public class LoadingUtil {
             }
         };
         task.setOnSucceeded(event -> closeButton.setVisible(true));
+        task.setOnCancelled(workerStateEvent -> closeButton.setVisible(false));
         return task;
     }
 }

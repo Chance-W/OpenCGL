@@ -3,6 +3,7 @@
 <?import io.github.palexdev.materialfx.controls.MFXButton?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -22,7 +23,8 @@
     <center>
         <VBox StackPane.alignment="TOP_CENTER" spacing="30">
             <HBox spacing="40" style="-fx-padding: 0 0 0 50;">
-                <MFXButton buttonType="RAISED" onAction="#jumpHomePage" prefHeight="30" prefWidth="100" text="个人主页"/>
+                <MFXButton buttonType="RAISED" onAction="#jumpHomePage" prefHeight="30" prefWidth="100"
+                           text="个人主页"/>
             </HBox>
             <HBox spacing="40" style="-fx-padding: 0 0 0 50;">
                 <GridPane alignment="CENTER" hgap="20.0" styleClass="grid-pane">
@@ -40,8 +42,8 @@
                         </opaqueInsets>
                     </StackPane>
                     <Label alignment="TOP_LEFT" styleClass="header-label" text="OpenCGL管理工具"/>
-                    <Label GridPane.columnSpan="10" fx:id="softwareIntroduce" alignment="TOP_LEFT" GridPane.rowIndex="1"
-                           wrapText="true" HBox.hgrow="ALWAYS"/>
+                    <TextArea fx:id="softwareIntroduce" GridPane.rowIndex="1" prefWidth="10000" GridPane.columnSpan="10"
+                              wrapText="true" editable="false" HBox.hgrow="ALWAYS"/>
                 </GridPane>
             </HBox>
             <HBox spacing="40" style="-fx-padding: 0 0 0 50;">
@@ -60,8 +62,8 @@
                         </opaqueInsets>
                     </StackPane>
                     <Label alignment="TOP_LEFT" styleClass="header-label" text="技术框架"/>
-                    <Label fx:id="softwareFrameworkIntroduce" alignment="TOP_LEFT" GridPane.rowIndex="2" wrapText="true"
-                           HBox.hgrow="ALWAYS"/>
+                    <TextArea fx:id="softwareFrameworkIntroduce" wrapText="true" editable="false" GridPane.rowIndex="2"
+                              HBox.hgrow="ALWAYS"/>
                 </GridPane>
                 <GridPane alignment="CENTER" hgap="20.0" styleClass="grid-pane">
                     <padding>
@@ -77,14 +79,11 @@
                             <Insets/>
                         </opaqueInsets>
                     </StackPane>
-                    <Label alignment="TOP_LEFT" styleClass="header-label" text="说明"/>
-                    <Label fx:id="softwareSuggestion" alignment="TOP_LEFT" GridPane.rowIndex="3" wrapText="true"
-                           HBox.hgrow="ALWAYS"/>
+                    <Label alignment="TOP_LEFT" styleClass="header-label" text="工具说明"/>
+                    <TextArea fx:id="softwareSuggestion" wrapText="true" editable="false" GridPane.rowIndex="3"
+                              GridPane.columnSpan="5" HBox.hgrow="ALWAYS"/>
                 </GridPane>
             </HBox>
-            <!--<HBox spacing="40" style="-fx-padding: 0 0 0 50;">
-
-            </HBox>-->
         </VBox>
     </center>
 </BorderPane>

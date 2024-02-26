@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.opencgl.selfpane.CustomDialog;
 import com.opencgl.selfpane.CustomInfoDialog;
+import com.opencgl.selfpane.CustomTextDialog;
 import javafx.application.Platform;
 
 /**
@@ -14,6 +15,7 @@ import javafx.application.Platform;
  * @CreateDate 2023/06/16 13:39
  * @since v9.0
  */
+@SuppressWarnings("unused")
 public class DialogUtil {
 
     private static final CustomDialog customDialog = new CustomDialog();
@@ -55,11 +57,25 @@ public class DialogUtil {
         });
     }
 
-    public static void showCustomInfo(String headerText, String text) {
+    public static void showCustomTextInfo(String text) {
         Platform.runLater(() -> {
-            customInfoDialog.setHeaderText(headerText);
-            customInfoDialog.setLabelText(text);
-            customInfoDialog.showAndWait();
+            CustomTextDialog customTextDialog = new CustomTextDialog(text);
+            customTextDialog.showAndWait();
+        });
+    }
+    public static void showCustomTextInfo(String headerText, String text) {
+        Platform.runLater(() -> {
+            CustomTextDialog customTextDialog = new CustomTextDialog(text);
+            customTextDialog.setHeaderText(headerText);
+            customTextDialog.showAndWait();
+        });
+    }
+
+    public static void showCustomTextInfo(String headerText, String text, String additionalText) {
+        Platform.runLater(() -> {
+            CustomTextDialog customTextDialog = new CustomTextDialog(text, additionalText);
+            customTextDialog.setHeaderText(headerText);
+            customTextDialog.showAndWait();
         });
     }
 }

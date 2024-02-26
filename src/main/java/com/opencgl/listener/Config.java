@@ -2,10 +2,11 @@ package com.opencgl.listener;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -15,7 +16,7 @@ import static com.opencgl.BaseEnum.BASE_CONF_FILE;
 import static com.opencgl.BaseEnum.PLUGIN_PATH;
 import com.alibaba.fastjson.JSON;
 import com.opencgl.BaseEnum;
-import com.opencgl.model.Properties;
+import com.opencgl.model.OpenCGLSelfProperties;
 
 /**
  * @author Chance.W
@@ -27,26 +28,47 @@ public class Config {
     private static final Logger logger = LoggerFactory.getLogger(Config.class);
 
     private static final Map<String, String> configMap = new HashMap<>();
-    private static final File file = new File(BaseEnum.BASE_CONF_FILE);
+    private static final File externalConfigFile = new File(BaseEnum.BASE_CONF_FILE);
+    private static final String applicationPropertiesPath = "com/opencgl/config/application.properties";
+    private static final Properties internalProperties = new Properties();
 
     static {
-        writeDefaultConfig();
+        writeDefaultExternalConfig();
+        loadInternalConfig();
     }
 
-    public static String readConfigure(String configKey) {
+    private static void loadInternalConfig() {
+        try (InputStream inputStream = Config.class.getClassLoader().getResourceAsStream(applicationPropertiesPath)) {
+            if (inputStream != null) {
+                // 加载内部配置文件
+                internalProperties.load(inputStream);
+            }
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public static String readExternalConfigure(String configKey) {
         return configMap.get(configKey);
     }
 
-    public static void updateConfig(Map<String, String> map) throws IOException {
+    public static String readInternalConfigure(String configKey) {
+        return internalProperties.getProperty(configKey);
+    }
+
+    public static void updateExternalConfigure(Map<String, String> map) throws IOException {
         for (Map.Entry<String, String> entry : configMap.entrySet()) {
             if (!map.get(entry.getKey()).equals(entry.getValue())) {
                 configMap.putAll(map);
-                FileUtils.write(file, JSON.toJSONString(configMap), StandardCharsets.UTF_8);
+                FileUtils.write(externalConfigFile, JSON.toJSONString(configMap), StandardCharsets.UTF_8);
             }
         }
     }
 
-    private static void writeDefaultConfig() {
+    @Deprecated
+    private static void writeDefaultExternalConfig() {
         File file = new File(BASE_CONF_FILE);
         try {
             if (!file.getParentFile().exists()) {
@@ -56,7 +78,7 @@ public class Config {
             if (!file.exists()) {
                 boolean mkdirs = file.createNewFile();
                 if (mkdirs) {
-                    configMap.put(Properties.PLUGIN_PATH_KEY, PLUGIN_PATH);
+                    configMap.put(OpenCGLSelfProperties.PLUGIN_PATH_KEY, PLUGIN_PATH);
                     FileUtils.write(file, JSON.toJSONString(configMap), StandardCharsets.UTF_8);
                 }
             }

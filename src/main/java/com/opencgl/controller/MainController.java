@@ -1,16 +1,27 @@
 package com.opencgl.controller;
 
+import java.awt.*;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -23,7 +34,7 @@ import com.opencgl.i18n.I18N;
 import com.opencgl.listener.Config;
 import com.opencgl.listener.FlexibleListener;
 import com.opencgl.model.MenuInfo;
-import com.opencgl.model.Properties;
+import com.opencgl.model.OpenCGLSelfProperties;
 import com.opencgl.selfpane.CglTabPane;
 import com.opencgl.selfpane.OpenCGLVbox;
 import com.opencgl.selfpane.SettingPane;
@@ -34,6 +45,7 @@ import com.opencgl.util.PluginParserHelper;
 import com.opencgl.util.RandomNumberGeneratorUtil;
 import com.opencgl.util.TooltipUtil;
 import io.github.palexdev.materialfx.controls.MFXContextMenu;
+import io.github.palexdev.materialfx.controls.MFXContextMenu.Builder;
 import io.github.palexdev.materialfx.controls.MFXContextMenuItem;
 import io.github.palexdev.materialfx.controls.MFXIconWrapper;
 import io.github.palexdev.materialfx.controls.MFXRectangleToggleNode;
@@ -45,6 +57,7 @@ import io.github.palexdev.materialfx.utils.others.loader.MFXLoaderBean;
 import io.github.palexdev.mfxresources.fonts.IconDescriptor;
 import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
 import io.github.palexdev.mfxresources.fonts.fontawesome.FontAwesomeSolid;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -105,6 +118,9 @@ public class MainController implements Initializable {
     private MFXFontIcon handUp;
 
     @FXML
+    private MFXFontIcon switchToTabPageIcon;
+
+    @FXML
     private MFXFontIcon closeIcon;
 
     @FXML
@@ -115,6 +131,15 @@ public class MainController implements Initializable {
 
     @FXML
     private MFXFontIcon settingIcon;
+
+    @FXML
+    private MFXFontIcon dropDownIcon;
+
+    @FXML
+    private MFXFontIcon questionIcon;
+
+    @FXML
+    private MFXFontIcon upgradeCheckIcon;
 
     @FXML
     private AnchorPane rootPane;
@@ -142,7 +167,7 @@ public class MainController implements Initializable {
 
     private BorderPane homeRootPane = null;
 
-    private MFXContextMenu menu = null;
+    private boolean contextMenuOpen = false;
 
     private final List<IconDescriptor> icons = new ArrayList<>();
 
@@ -155,16 +180,16 @@ public class MainController implements Initializable {
         this.stage = stage;
         this.toggleGroup = new ToggleGroup();
         ToggleButtonsUtil.addAlwaysOneSelectedSupport(toggleGroup);
+        Collections.addAll(icons, FontAwesomeSolid.values());
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        Collections.addAll(icons, FontAwesomeSolid.values());
         setComponentsI18n();
         new FlexibleListener(stage).enableDrag(rootPane);
         buildAndInitContextMenu();
         Tooltip tooltip = new Tooltip(I18N.getOrDefault("oepncgl.main.hang.click.info"));
-        tooltip.setShowDelay(Duration.ZERO);
+        tooltip.setShowDelay(Duration.seconds(3));
         Tooltip.install(handUp, tooltip);
         handUp.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             if (event.getButton() == MouseButton.PRIMARY) {
@@ -183,10 +208,12 @@ public class MainController implements Initializable {
                     tag = 1;
                 }
             }
-            else if (event.getButton() == MouseButton.SECONDARY) {
-                menu.install();
-            }
         });
+
+        Tooltip switchToTabTooltip = new Tooltip(I18N.getOrDefault("opencgl.main.switchToTabListPage"));
+        switchToTabTooltip.setShowDelay(Duration.seconds(1));
+        Tooltip.install(switchToTabPageIcon, switchToTabTooltip);
+        switchToTabPageIcon.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> switchToTabPage());
 
         closeIcon.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             System.exit(0);
@@ -202,15 +229,37 @@ public class MainController implements Initializable {
         minTip.setShowDelay(Duration.ZERO);
         Tooltip.install(minimizeIcon, minTip);
 
+        Tooltip dropDownTip = new Tooltip(I18N.getOrDefault("oepncgl.main.dropDown.text"));
+        dropDownTip.setShowDelay(Duration.seconds(3.0));
+        Tooltip.install(dropDownIcon, dropDownTip);
 
-        Tooltip.install(maximizeIcon, maxTip);
-        maxTip.setShowDelay(Duration.ZERO);
+        Tooltip questionTip = new Tooltip(I18N.getOrDefault("opencgl.main.help.text"));
+        questionTip.setShowDelay(Duration.seconds(1.0));
+        Tooltip.install(questionIcon, questionTip);
+        questionIcon.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> jumpToHelpPage());
+
+        Tooltip upgradeCheckTip = new Tooltip(I18N.getOrDefault("opencgl.main.upgrade.check.text"));
+        questionTip.setShowDelay(Duration.seconds(1.0));
+        Tooltip.install(upgradeCheckIcon, upgradeCheckTip);
+        upgradeCheckIcon.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+            try {
+                Platform.runLater(() -> LoadingUtil.show(contentPane));
+                upgradeCheck(true);
+            }
+            finally {
+                Platform.runLater(() -> LoadingUtil.remove(contentPane));
+            }
+        });
+
+
 
         settingIcon.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> settingPane.show(rootPane));
         Tooltip settingTip = new Tooltip(I18N.getOrDefault("oepncgl.main.setting.text"));
         settingTip.setShowDelay(Duration.ZERO);
         Tooltip.install(settingIcon, settingTip);
 
+        Tooltip.install(maximizeIcon, maxTip);
+        maxTip.setShowDelay(Duration.ZERO);
         maximizeIcon.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> autoFillWindows());
 
         Tooltip movePosition = new Tooltip(I18N.getOrDefault("oepncgl.main.movePosition.text"));
@@ -233,17 +282,21 @@ public class MainController implements Initializable {
                 }
             }
         });
-
+        AtomicBoolean mouseHeldDown = new AtomicBoolean(false);
         AtomicReference<Double> xOffsetTest = new AtomicReference<>((double) 0);
         AtomicReference<Double> yOffsetTest = new AtomicReference<>((double) 0);
         autoGroupHBox.setOnMousePressed(event -> {
             xOffsetTest.set(stage.getX() - event.getScreenX());
             yOffsetTest.set(stage.getY() - event.getScreenY());
+            autoGroupHBox.setOnMouseDragged(event1 -> {
+                if (contextMenuOpen) {
+                    return;
+                }
+                stage.setX(event1.getScreenX() + xOffsetTest.get());
+                stage.setY(event1.getScreenY() + yOffsetTest.get());
+            });
         });
-        autoGroupHBox.setOnMouseDragged(event -> {
-            stage.setX(event.getScreenX() + xOffsetTest.get());
-            stage.setY(event.getScreenY() + yOffsetTest.get());
-        });
+
 
         try {
             initializeLoader();
@@ -264,6 +317,54 @@ public class MainController implements Initializable {
         clip.centerYProperty().bind(logo.layoutBoundsProperty().map(Bounds::getCenterY));
         logo.setClip(clip);
         logoContainer.getChildren().add(logo);
+        Platform.runLater(() -> upgradeCheck(false));
+    }
+
+    private void upgradeCheck(boolean tag) {
+        try {
+            @SuppressWarnings("resource")
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(Config.readInternalConfigure(OpenCGLSelfProperties.DEFAULT_UPGRADE_URL)))
+                .GET()
+                .build();
+
+            HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            if (response.statusCode() == 200) {
+                byte[] fileContent = response.body();
+                Properties properties = new Properties();
+                properties.load(new InputStreamReader(new ByteArrayInputStream(fileContent), StandardCharsets.UTF_8));
+                // 通过Properties对象获取值
+                String version = properties.getProperty("version");
+                String description = properties.getProperty("description");
+                String downloadAddress = properties.getProperty("downloadAddress");
+                String currentVersion = Config.readInternalConfigure(OpenCGLSelfProperties.CURRENT_VERSION_KEY);
+                if (currentVersion.compareTo(version) < 0) {
+                    DialogUtil.showCustomTextInfo(I18N.getOrDefault("opencgl.main.info.upgradeInfo"), description, downloadAddress);
+                }
+                else {
+                    if (tag) {
+                        DialogUtil.showCustomTextInfo(I18N.getOrDefault("opencgl.main.info.noNeedUpgradeInfo"));
+                    }
+                }
+            }
+            else {
+                logger.error("Failed to retrieve file list. Server returned status code: {}", response.statusCode());
+            }
+        }
+        catch (IOException | InterruptedException | URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void jumpToHelpPage() {
+        Desktop desktop = Desktop.getDesktop();
+        try {
+            desktop.browse(new URI(Config.readInternalConfigure(OpenCGLSelfProperties.PLUGIN_HELP_URL)));
+        }
+        catch (IOException | URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void autoFillWindows() {
@@ -296,7 +397,6 @@ public class MainController implements Initializable {
         MFXLoader loader = new MFXLoader();
         loader.addView(MFXLoaderBean.of("HomePane", this.getClass().getClassLoader().getResource("com/opencgl/view/HomePane.fxml")).setBeanToNodeMapper(() -> createToggle("fas-circle-dot", "主页")).setDefaultRoot(true).get());
         loader.addView(MFXLoaderBean.of("allPane", this.getClass().getClassLoader().getResource("com/opencgl/view/GeneralComponentsPane.fxml")).setBeanToNodeMapper(() -> createToggle("fas-bars-progress", "全部")).get());
-
 
         Map<String, List<MenuInfo>> menuMap = menuInfos.stream().collect(Collectors.groupingBy(MenuInfo::getFatherMenuName));
         menuMap.forEach(new BiConsumer<>() {
@@ -340,7 +440,6 @@ public class MainController implements Initializable {
                                 }
                             }
                         }
-
                     });
                     ToggleButton toggle = (ToggleButton) bean.getBeanToNodeMapper().get();
                     toggle.setOnAction(event -> contentPane.getChildren().setAll(bean.getRoot()));
@@ -378,7 +477,7 @@ public class MainController implements Initializable {
     private VBox buildMenuInfo(MenuInfo menuInfo)
         throws Exception {
         Image image = new Image(Objects.requireNonNull(
-            Optional.ofNullable(PluginParserHelper.getFileInputStream(new File(Config.readConfigure(Properties.PLUGIN_PATH_KEY) + File.separator + menuInfo.getJarName()),
+            Optional.ofNullable(PluginParserHelper.getFileInputStream(new File(Config.readExternalConfigure(OpenCGLSelfProperties.PLUGIN_PATH_KEY) + File.separator + menuInfo.getJarName()),
                 menuInfo.getIconPath())).orElse(this.getClass().getResourceAsStream("/com/opencgl/icon/logo.png"))),
             70,
             50,
@@ -388,17 +487,40 @@ public class MainController implements Initializable {
         ImageView headImageView = new ImageView(image);
         Label header = new Label();
         header.setGraphic(headImageView);
-        header.setTooltip(new Tooltip(menuInfo.getPluginInfo()));
         Label body = new Label(menuInfo.getMenuName());
-        /* body.setStyle("-fx-font-size: 20px;-fx-padding: 10px,0,0,0;");*/
         OpenCGLVbox vBox = new OpenCGLVbox();
-        /*vBox.setPadding(new Insets(20));*/
+        vBox.setStyle("-fx-background-color: lightblue;-fx-border-width: 0px");
         vBox.getChildren().addAll(header, body);
+
+        Tooltip pluginTip = new Tooltip(menuInfo.getPluginInfo());
+        pluginTip.setShowDelay(Duration.seconds(2.0));
+        Tooltip.install(vBox, pluginTip);
+
+        // 创建TranslateTransition对象
+        TranslateTransition transition = new TranslateTransition(Duration.seconds(0.3), vBox);
+        // 设置Y轴方向的起始位置
+        transition.setFromY(0);
+        // 设置Y轴方向的结束位置
+        transition.setToY(-10);
+        // 设置动画循环模式
+        transition.setAutoReverse(true);
+        transition.setCycleCount(TranslateTransition.INDEFINITE);
+
+        // 添加鼠标进入事件处理
+        vBox.setOnMouseEntered(event -> {
+            transition.playFromStart(); // 开始动画
+        });
+
+        // 添加鼠标移出事件处理
+        vBox.setOnMouseExited(event -> {
+            transition.stop(); // 停止动画
+            vBox.setTranslateY(0); // 恢复原始位置
+        });
 
         FXMLLoader fxmlLoader = new FXMLLoader();
         try (PluginClassLoader pluginClassLoader = PluginClassLoader
             .create(
-                new File(Config.readConfigure(Properties.PLUGIN_PATH_KEY) + menuInfo.getJarName()))) {
+                new File(Config.readExternalConfigure(OpenCGLSelfProperties.PLUGIN_PATH_KEY) + menuInfo.getJarName()))) {
             FXMLLoader pluginFxmlLoader = (FXMLLoader) pluginClassLoader.loadClass("javafx.fxml.FXMLLoader").getDeclaredConstructor().newInstance();
             fxmlLoader.setLocation(pluginClassLoader.getResource(menuInfo.getFxmlPath()));
         }
@@ -422,7 +544,7 @@ public class MainController implements Initializable {
                     tab.setText(menuInfo.getMenuName());
                     try {
                         if (StringUtils.isNotEmpty(menuInfo.getJarName())) {
-                            PluginClassLoader pluginClassLoader = PluginClassLoader.create(new File(Config.readConfigure(Properties.PLUGIN_PATH_KEY) + File.separator + menuInfo.getJarName()));
+                            PluginClassLoader pluginClassLoader = PluginClassLoader.create(new File(Config.readExternalConfigure(OpenCGLSelfProperties.PLUGIN_PATH_KEY) + File.separator + menuInfo.getJarName()));
                             FXMLLoader pluginFxmlLoader = (FXMLLoader) pluginClassLoader.loadClass("javafx.fxml.FXMLLoader").getDeclaredConstructor().newInstance();
                             pluginFxmlLoader.setClassLoader(pluginClassLoader);
                             URL resource = pluginClassLoader.getResource(menuInfo.getFxmlPath());
@@ -430,9 +552,7 @@ public class MainController implements Initializable {
                             tab.setContent(pluginFxmlLoader.load());
                             ObservableList<Node> nodes = navBar.getChildren();
                             removeSelectedToggleButton(nodes);
-
                             Platform.runLater(() -> contentPane.getChildren().setAll(componentJfxTabPane));
-
                             tab.setOnClosed(event -> {
                                 try {
                                     pluginClassLoader.close();
@@ -457,7 +577,6 @@ public class MainController implements Initializable {
                             componentJfxTabPane.getTabs().add(tab);
                             componentJfxTabPane.getSelectionModel().select(tab);
                         });
-
                     }
                     catch (Exception e) {
                         logger.error("", e);
@@ -496,20 +615,45 @@ public class MainController implements Initializable {
         MFXContextMenuItem switchToTabPageMenuItem = MFXContextMenuItem.Builder.build()
             .setText(I18N.getOrDefault("opencgl.main.switchToTabListPage"))
             .setIcon(new MFXFontIcon("fas-check-double", 16))
+            .setOnAction(event -> switchToTabPage()).get();
+        switchToTabPageMenuItem.setStyle("-fx-max-height: 20px;");
+
+        MFXContextMenuItem reloadPluginMenuItem = MFXContextMenuItem.Builder.build()
+            .setText(I18N.getOrDefault("opencgl.main.reloadPluginMenuItem"))
+            .setIcon(new MFXFontIcon("fas-arrow-rotate-left", 16))
             .setOnAction(event -> {
-                if (!componentJfxTabPane.getTabs().isEmpty()) {
-                    contentPane.getChildren().setAll(componentJfxTabPane);
-                    ObservableList<Node> nodes = navBar.getChildren();
-                    removeSelectedToggleButton(nodes);
+                logger.info("begin reload plugin....");
+                try {
+                    initializeLoader();
+                    TooltipUtil.showToast(I18N.getOrDefault("opencgl.mainWindows.loadPlugin.success"));
                 }
-                else {
-                    TooltipUtil.showToast(homeRootPane, I18N.getOrDefault("opencgl.main.tabIsNotExist"));
+                catch (Exception e) {
+                    TooltipUtil.showToast(I18N.getOrDefault("opencgl.mainWindows.loadPlugin.error") + e.getMessage());
                 }
             }).get();
-        switchToTabPageMenuItem.setStyle("-fx-max-height: 20px;");
-        menu = MFXContextMenu.Builder.build(handUp)
+        reloadPluginMenuItem.setStyle("-fx-max-height: 20px;");
+
+        MFXContextMenu menu = Builder.build(dropDownIcon)
             .addItems(switchToTabPageMenuItem)
-            .addSeparator(MFXContextMenu.Builder.getLineSeparator())
+            .addSeparator(Builder.getLineSeparator())
+            .addItem(reloadPluginMenuItem)
+            .addSeparator(Builder.getLineSeparator())
+            .setShowCondition(mouseEvent -> {
+                contextMenuOpen = mouseEvent.getButton() == MouseButton.PRIMARY;
+                return contextMenuOpen;
+            })
             .installAndGet();
+        menu.setOnHidden((event) -> contextMenuOpen = false);
+    }
+
+    private void switchToTabPage() {
+        if (!componentJfxTabPane.getTabs().isEmpty()) {
+            contentPane.getChildren().setAll(componentJfxTabPane);
+            ObservableList<Node> nodes = navBar.getChildren();
+            removeSelectedToggleButton(nodes);
+        }
+        else {
+            TooltipUtil.showToast(rootPane, I18N.getOrDefault("opencgl.main.tabIsNotExist"), 30.0);
+        }
     }
 }

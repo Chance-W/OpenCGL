@@ -6,13 +6,12 @@ import java.util.TimerTask;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
+import javafx.scene.text.Font;
 import javafx.stage.PopupWindow;
 import javafx.stage.Window;
 
 @SuppressWarnings("unused")
 public class TooltipUtil {
-    public TooltipUtil() {
-    }
 
     public static void showToast(String message) {
         showToast(null, message);
@@ -30,7 +29,22 @@ public class TooltipUtil {
             x = window.getX() + window.getWidth() / 2.0D;
             y = window.getY() + window.getHeight();
         }
-        showToast(window, message, 3000L, x, y);
+        showToast(window, message, 3000L, x, y, null);
+    }
+
+    public static void showToast(Node node, String message, Double size) {
+        Window window = getWindow(node);
+        double x;
+        double y;
+        if (node != null) {
+            x = getScreenX(node) + getWidth(node) / 2.0D;
+            y = getScreenY(node) + getHeight(node) / 2.0D;
+        }
+        else {
+            x = window.getX() + window.getWidth() / 2.0D;
+            y = window.getY() + window.getHeight() / 2.0D;
+        }
+        showToast(window, message, 3000L, x, y, size);
     }
 
     private static Window getWindow(Object node) {
@@ -57,8 +71,12 @@ public class TooltipUtil {
         }
     }
 
-    public static void showToast(Window window, String message, long time, double x, double y) {
+    public static void showToast(Window window, String message, long time, double x, double y, Double size) {
         final Tooltip tooltip = new Tooltip(message);
+        if (size != null) {
+            Font font = new Font(size);
+            tooltip.setFont(font);
+        }
         tooltip.setAutoHide(true);
         tooltip.setOpacity(0.9D);
         tooltip.setWrapText(true);
