@@ -176,9 +176,9 @@ alias opencgl='cd $OPENCGL_HOME;nohup ../Java/zulu21.30.15/bin/java -jar OpenCGL
 
 ### 6.1 联系方式
 
-邮箱：chance.w@qq.com;chance_w@126.com
-微信号：Chance_W-
-钉钉号：xxx
+- 邮箱：chance.w@qq.com;chance_w@126.com
+- 微信号：Chance_W-
+- 钉钉号：xxx
 
 ### 6.2 技术框架
 
