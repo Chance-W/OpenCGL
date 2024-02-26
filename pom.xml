@@ -257,6 +257,18 @@
                 <groupId>io.github.fvarrui</groupId>
                 <artifactId>javapackager</artifactId>
                 <version>1.7.2</version>
+                <configuration>
+                    <name>OpenCGL</name>
+                    <organizationName>Chance.W Personal</organizationName>
+                    <organizationUrl>https://www.tool-graphical.top</organizationUrl>
+                    <description>OpenCGL</description>
+                    <!-- mandatory -->
+                    <mainClass>com.opencgl.OpenCglStartApplication</mainClass>
+                    <!-- optional -->
+                    <bundleJre>true</bundleJre>
+                    <generateInstaller>true</generateInstaller>
+                    <administratorRequired>true</administratorRequired>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -278,20 +290,24 @@
                             <!-- <platform>windows</platform>-->
                             <platform>${platform}</platform>
                             <!--windows jdk-->
-                            <!--<jdkPath>/Users/chancew./Software/Java/zulu19-fx-win</jdkPath>-->
+
                             <additionalResources>
-                                <additionalResource>src/main/resources/com</additionalResource>
+                                <additionalResource>src/main/resources</additionalResource>
                                 <additionalResource>src/main/resources/OpenCGL.l4j.ini</additionalResource>
                             </additionalResources>
-                            <!--<assetsDir>${project.build.directory}/classes/com/xtool/opencgl/images/icon/</assetsDir>-->
+                            <assetsDir>${project.build.directory}/assets/</assetsDir>
                             <winConfig>
-                                <icoFile>${project.build.directory}/classes/com/opencgl/icon/logo.ico
+                                <icoFile>src/main/resources/com/opencgl/icon/icon.ico
                                 </icoFile>
+                                <generateSetup>true</generateSetup>
+                                <generateMsi>false</generateMsi>
+                                <generateMsm>false</generateMsm>
                                 <fileVersion>1.0.0.0</fileVersion>
                                 <txtFileVersion>${version}</txtFileVersion>
                                 <disableDirPage>false</disableDirPage>
                                 <disableFinishedPage>false</disableFinishedPage>
-                                <createDesktopIconTask>false</createDesktopIconTask>
+                                <createDesktopIconTask>true</createDesktopIconTask>
+                                <removeOldLibs>true</removeOldLibs>
                             </winConfig>
                             <linuxConfig>
                                 <pngFile>${project.build.directory}/classes//opencgl/images/icon/logo.png
