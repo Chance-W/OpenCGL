@@ -89,8 +89,8 @@
 由于无法申请到苹果的开发者账号，所以当前仅支持通过手工部署的方式操作
 
 1.根据实际自行选择如下 jdk版本
-ARM 64-bit：https://www.azul.com/core-post-download/?endpoint=zulu&uuid=9a813ae9-1c71-4256-ba23-603bacbc355d
-x86 64-bit：https://www.azul.com/core-post-download/?endpoint=zulu&uuid=90273b2e-1850-47a4-95e4-49ff120c120a
+- ARM 64-bit：https://www.azul.com/core-post-download/?endpoint=zulu&uuid=9a813ae9-1c71-4256-ba23-603bacbc355d
+- x86 64-bit：https://www.azul.com/core-post-download/?endpoint=zulu&uuid=90273b2e-1850-47a4-95e4-49ff120c120a
 
 2.将其解压至您的软件安装目录
 
