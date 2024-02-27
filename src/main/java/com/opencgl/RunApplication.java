@@ -46,6 +46,8 @@ public class RunApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        Image iconImage = new Image(String.valueOf(this.getClass().getClassLoader().getResource("com/opencgl/icon/logo_alt.png")), 64, 64, true, true);
+        primaryStage.getIcons().add(iconImage);
         CSSFX.start();
         UserAgentBuilder.builder()
             .themes(JavaFXThemes.MODENA)
@@ -86,8 +88,6 @@ public class RunApplication extends Application {
                     primaryStage.setTitle("OpenCGL");
                     primaryStage.setResizable(true);
                     primaryStage.setScene(scene);
-                    Image iconImage = new Image(String.valueOf(this.getClass().getClassLoader().getResource("com/opencgl/icon/logo_alt.png")), 64, 64, true, true);
-                    primaryStage.getIcons().add(iconImage);
 
                     // 重新设置舞台位置使其居中
                     Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
