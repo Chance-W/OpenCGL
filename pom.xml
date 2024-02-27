@@ -297,8 +297,10 @@
                             </additionalResources>
                             <assetsDir>${project.build.directory}/assets/</assetsDir>
                             <winConfig>
-                                <icoFile>src/main/resources/com/opencgl/icon/icon.ico
+                                <icoFile>
+                                    ${project.basedir}\src\main\resources\com\opencgl\icon\icon.ico
                                 </icoFile>
+                                <setupMode>askTheUser</setupMode>
                                 <generateSetup>true</generateSetup>
                                 <generateMsi>false</generateMsi>
                                 <generateMsm>false</generateMsm>
@@ -308,9 +310,14 @@
                                 <disableFinishedPage>false</disableFinishedPage>
                                 <createDesktopIconTask>true</createDesktopIconTask>
                                 <removeOldLibs>true</removeOldLibs>
+                                <language>chinese</language>
+                                <setupLanguages>
+                                    <chinesesimp>${project.basedir}\src\main\resources\com\opencgl\languages\ChineseSimplified.isl</chinesesimp>
+                                    <english>compiler:\Default.isl</english>
+                                </setupLanguages>
                             </winConfig>
                             <linuxConfig>
-                                <pngFile>${project.build.directory}/classes//opencgl/images/icon/logo.png
+                                <pngFile>${project.build.directory}/classes/opencgl/images/icon/logo.png
                                 </pngFile>
                                 <generateAppImage>false</generateAppImage>
                                 <generateDeb>true</generateDeb>
