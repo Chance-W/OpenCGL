@@ -124,6 +124,7 @@ public class RunApplication extends Application {
             lock = channel.tryLock();
             if (lock == null) {
                 StackPane stackPane = new StackPane();
+                stackPane.setStyle("-fx-border-color: gray;-fx-border-width: 1px;");
                 MFXButton quitButton = new MFXButton(I18N.getOrDefault("oepncgl.main.close.text"));
                 quitButton.setButtonType(ButtonType.RAISED);
                 quitButton.setAlignment(Pos.CENTER);
