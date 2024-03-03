@@ -89,6 +89,7 @@
 由于无法申请到苹果的开发者账号，所以当前仅支持通过手工部署的方式操作
 
 1.根据实际自行选择如下 jdk版本
+
 - ARM 64-bit：https://www.azul.com/core-post-download/?endpoint=zulu&uuid=9a813ae9-1c71-4256-ba23-603bacbc355d
 - x86 64-bit：https://www.azul.com/core-post-download/?endpoint=zulu&uuid=90273b2e-1850-47a4-95e4-49ff120c120a
 
@@ -155,6 +156,8 @@ alias opencgl='cd $OPENCGL_HOME;nohup ../Java/zulu21.30.15/bin/java -jar OpenCGL
 #### 4.1 插件式扩展
 
 见[3.2.1]
+插件开发手册见
+https://gitee.com/chance_w/OpenCGL-Plugin/blob/main/README.md
 
 ## 5. 常见问题解答
 
