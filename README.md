@@ -157,7 +157,7 @@ alias opencgl='cd $OPENCGL_HOME;nohup ../Java/zulu21.30.15/bin/java -jar OpenCGL
 
 见[3.2.1]
 插件开发手册见
-https://gitee.com/chance_w/OpenCGL-Plugin/blob/main/README.md
+https://gitee.com/chance_w/open-cgl-plugin/blob/main/README.md
 
 ## 5. 常见问题解答
 
@@ -190,5 +190,14 @@ https://gitee.com/chance_w/OpenCGL-Plugin/blob/main/README.md
 - MaterialFX
 - FontAwesome
 - ...
+
+## 7 特别感谢
+感谢MaterialFX作者，编写了如此炫酷的展示和优化，让OpenCGL的桌面客户端也能焕发光彩
+
+开源地址：https://github.com/palexdev/MaterialFX
+
+感谢追风开源了xJavaFxTool，让我可以从中受益，学到到 javafx 的很多知识，同时插件工程也移植了部分追风的插件
+
+开源地址：https://gitee.com/xwintop/xJavaFxTool
 
 ---
