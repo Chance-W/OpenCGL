@@ -200,4 +200,6 @@ https://gitee.com/chance_w/open-cgl-plugin/blob/main/README.md
 
 开源地址：https://gitee.com/xwintop/xJavaFxTool
 
+## 8 其他
+C:\Software\zulu21.30.15-ca-jdk21.0.1-win_x64\bin\java.exe -Dmaven.multiModuleProjectDirectory=C:\Users\chancew\IdeaProjects\OpenCGL_New -Djansi.passthrough=true -Dmaven.home=C:\Software\apache-maven-3.6.3 -Dclassworlds.conf=C:\Software\apache-maven-3.6.3\bin\m2.conf "-Dmaven.ext.class.path=C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2023.3.2\plugins\maven\lib\maven-event-listener.jar" "-javaagent:C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2023.3.2\lib\idea_rt.jar=55148:C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2023.3.2\bin" -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 -classpath C:\Software\apache-maven-3.6.3\boot\plexus-classworlds-2.6.0.jar;C:\Software\apache-maven-3.6.3\boot\plexus-classworlds.license org.codehaus.classworlds.Launcher -Didea.version=2023.3.2 -s C:\Software\apache-maven-3.6.3\conf\settings-aliyun.xml package -P windows
 ---
