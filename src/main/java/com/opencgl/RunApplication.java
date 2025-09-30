@@ -12,7 +12,7 @@ import javafx.scene.image.Image;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.opencgl.controller.MainController;
+import com.opencgl.controller.NewMainController;
 import com.opencgl.i18n.I18N;
 import fr.brouillard.oss.cssfx.CSSFX;
 import io.github.palexdev.materialfx.controls.MFXButton;
@@ -78,26 +78,49 @@ public class RunApplication extends Application {
         CompletableFuture.runAsync(() ->
         {
             try {
+                logger.info("开始加载主界面FXML...");
                 FXMLLoader loader = new FXMLLoader(RunApplication.class.getClassLoader().getResource("com/opencgl/view/Main.fxml"));
-                loader.setControllerFactory(c -> new MainController(primaryStage));
+                loader.setControllerFactory(c -> new NewMainController(primaryStage));
                 Parent root = loader.load();
+                logger.info("FXML加载完成，准备显示主界面...");
+                
                 Platform.runLater(() -> {
-                    Scene scene = new Scene(root);
-                    scene.setFill(Color.TRANSPARENT);
-                    // MFXThemeManager.addOn(scene, Themes.DEFAULT, Themes.LEGACY);
-                    primaryStage.setTitle("OpenCGL");
-                    primaryStage.setResizable(true);
-                    primaryStage.setScene(scene);
+                    try {
+                        Scene scene = new Scene(root);
+                        scene.setFill(Color.TRANSPARENT);
+                        // MFXThemeManager.addOn(scene, Themes.DEFAULT, Themes.LEGACY);
+                        primaryStage.setTitle("OpenCGL");
+                        primaryStage.setResizable(true);
+                        primaryStage.setScene(scene);
 
-                    // 重新设置舞台位置使其居中
-                    Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
-                    primaryStage.setX((visualBounds.getWidth() - primaryStage.getWidth()) / 2);
-                    primaryStage.setY((visualBounds.getHeight() - primaryStage.getHeight()) / 2);
+                        // 重新设置舞台位置使其居中
+                        Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
+                        primaryStage.setX((visualBounds.getWidth() - primaryStage.getWidth()) / 2);
+                        primaryStage.setY((visualBounds.getHeight() - primaryStage.getHeight()) / 2);
+                        
+                        logger.info("主界面显示完成");
+                    } catch (Exception e) {
+                        logger.error("显示主界面时发生错误", e);
+                        primaryStage.close();
+                        System.exit(1);
+                    }
                 });
             }
             catch (IOException e) {
-                throw new RuntimeException(e);
+                logger.error("Failed to load main FXML", e);
+                Platform.runLater(() -> {
+                    // 显示错误信息并退出
+                    primaryStage.close();
+                    System.exit(1);
+                });
             }
+        }).exceptionally(throwable -> {
+            logger.error("Failed to initialize application", throwable);
+            Platform.runLater(() -> {
+                primaryStage.close();
+                System.exit(1);
+            });
+            return null;
         });
     }
 
@@ -125,7 +148,7 @@ public class RunApplication extends Application {
             if (lock == null) {
                 StackPane stackPane = new StackPane();
                 stackPane.setStyle("-fx-border-color: gray;-fx-border-width: 1px;");
-                MFXButton quitButton = new MFXButton(I18N.getOrDefault("oepncgl.main.close.text"));
+                MFXButton quitButton = new MFXButton(I18N.getOrDefault("opencgl.main.close.text"));
                 quitButton.setButtonType(ButtonType.RAISED);
                 quitButton.setAlignment(Pos.CENTER);
                 quitButton.setMinHeight(40);

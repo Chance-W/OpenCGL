@@ -9,8 +9,8 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>19</maven.compiler.source>
-        <maven.compiler.target>19</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
     </properties>
     <profiles>
         <profile>
@@ -134,7 +134,7 @@
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
-            <version>3.27.2.1</version>
+            <version>3.46.0.0</version>
         </dependency>
 
         <dependency>
@@ -152,45 +152,11 @@
             <artifactId>flexmark-all</artifactId>
             <version>0.42.14</version>
         </dependency>
-
-        <!--插件式需单独依赖的插件-->
-        <!--dubbo依赖-->
         <dependency>
-            <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo</artifactId>
-            <version>3.2.4</version>
+            <groupId>OpenCGL-Plugin</groupId>
+            <artifactId>PluginApiModule</artifactId>
+            <version>1.0.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-framework</artifactId>
-            <version>5.1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-x-discovery</artifactId>
-            <version>5.1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-            <version>3.6.3</version>
-        </dependency>
-        <!--zookeeper-->
-        <!--  <dependency>
-              <groupId>com.101tec</groupId>
-              <artifactId>zkclient</artifactId>
-              <version>0.9</version>
-          </dependency>
-          <dependency>
-              <groupId>org.apache.curator</groupId>
-              <artifactId>curator-framework</artifactId>
-              <version>5.1.0</version> &lt;!&ndash; 请使用你需要的 Curator 版本 &ndash;&gt;
-          </dependency>
-          <dependency>
-              <groupId>org.apache.curator</groupId>
-              <artifactId>curator-x-discovery</artifactId>
-              <version>5.1.0</version> &lt;!&ndash; 请使用你需要的 Curator 版本 &ndash;&gt;
-          </dependency>-->
     </dependencies>
 
     <build>
@@ -284,6 +250,8 @@
                             <mainClass>com.opencgl.OpenCglStartApplication</mainClass>
                             <!-- optional -->
                             <bundleJre>true</bundleJre>
+                            <customizedJre>true</customizedJre>
+                            <jrePath>${project.basedir}\src\main\resources\jre</jrePath>
                             <generateInstaller>true</generateInstaller>
                             <administratorRequired>true</administratorRequired>
                             <!--auto|linux|mac|windows-->
@@ -312,7 +280,9 @@
                                 <removeOldLibs>true</removeOldLibs>
                                 <language>chinese</language>
                                 <setupLanguages>
-                                    <chinesesimp>${project.basedir}\src\main\resources\com\opencgl\languages\ChineseSimplified.isl</chinesesimp>
+                                    <chinesesimp>
+                                        ${project.basedir}\src\main\resources\com\opencgl\languages\ChineseSimplified.isl
+                                    </chinesesimp>
                                     <english>compiler:\Default.isl</english>
                                 </setupLanguages>
                             </winConfig>

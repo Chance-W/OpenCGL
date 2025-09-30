@@ -1,5 +1,6 @@
 package com.opencgl.model;
 
+import com.opencgl.plugin.api.PluginUI;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,4 +26,6 @@ public class MenuInfo {
     private Boolean enable;
     private String jarName;
     private String pluginInfo;
+    private String jarPath;
+    private PluginUI pluginUI;
 }

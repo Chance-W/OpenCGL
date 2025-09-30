@@ -2,8 +2,6 @@
 //
 //import java.awt.*;
 //import java.io.ByteArrayInputStream;
-//import java.io.File;
-//import java.io.FileNotFoundException;
 //import java.io.IOException;
 //import java.io.InputStreamReader;
 //import java.net.URI;
@@ -13,37 +11,40 @@
 //import java.net.http.HttpRequest;
 //import java.net.http.HttpResponse;
 //import java.nio.charset.StandardCharsets;
+//import java.nio.file.Paths;
 //import java.util.ArrayList;
 //import java.util.Collections;
 //import java.util.List;
 //import java.util.Map;
 //import java.util.Objects;
-//import java.util.Optional;
 //import java.util.Properties;
 //import java.util.ResourceBundle;
-//import java.util.concurrent.CompletableFuture;
+//import java.util.Set;
 //import java.util.concurrent.atomic.AtomicBoolean;
 //import java.util.concurrent.atomic.AtomicReference;
 //import java.util.function.BiConsumer;
 //import java.util.stream.Collectors;
 //
-//import org.apache.commons.lang.StringUtils;
+//import javax.swing.*;
+//
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 //
 //import com.opencgl.i18n.I18N;
 //import com.opencgl.listener.Config;
 //import com.opencgl.listener.FlexibleListener;
-//import com.opencgl.model.MenuInfo;
 //import com.opencgl.model.OpenCGLSelfProperties;
+//import com.opencgl.plugin.api.PluginUI;
+//import com.opencgl.plugin.api.PluginUIWithClassLoader;
 //import com.opencgl.selfpane.CglTabPane;
 //import com.opencgl.selfpane.OpenCGLVbox;
 //import com.opencgl.selfpane.SettingPane;
 //import com.opencgl.util.DialogUtil;
 //import com.opencgl.util.LoadingUtil;
-//import com.opencgl.util.spibak.PluginClassLoader;
-//import com.opencgl.util.spibak.PluginParserHelper;
+//import com.opencgl.util.spibak.PluginDescriptor;
 //import com.opencgl.util.RandomNumberGeneratorUtil;
+//import com.opencgl.util.spibak.PluginWrapper;
+//import com.opencgl.util.spibak.SimplePluginManager;
 //import com.opencgl.util.TooltipUtil;
 //import io.github.palexdev.materialfx.controls.MFXContextMenu;
 //import io.github.palexdev.materialfx.controls.MFXContextMenu.Builder;
@@ -61,16 +62,15 @@
 //import javafx.animation.TranslateTransition;
 //import javafx.application.Platform;
 //import javafx.collections.ObservableList;
+//import javafx.embed.swing.SwingNode;
 //import javafx.event.EventHandler;
 //import javafx.fxml.FXML;
-//import javafx.fxml.FXMLLoader;
 //import javafx.fxml.Initializable;
 //import javafx.geometry.Bounds;
 //import javafx.geometry.Insets;
 //import javafx.geometry.Pos;
 //import javafx.geometry.Rectangle2D;
 //import javafx.scene.Node;
-//import javafx.scene.Parent;
 //import javafx.scene.control.Label;
 //import javafx.scene.control.Tab;
 //import javafx.scene.control.ToggleButton;
@@ -87,6 +87,7 @@
 //import javafx.scene.layout.StackPane;
 //import javafx.scene.layout.VBox;
 //import javafx.scene.shape.Circle;
+//import javafx.scene.web.WebView;
 //import javafx.stage.Screen;
 //import javafx.stage.Stage;
 //import javafx.util.Duration;
@@ -96,13 +97,11 @@
 // * @version 1.0
 // * @CreateDate 2023/06/02 23:43
 // * @since v9.0
-// * */
-//
-//
+// */
 //@SuppressWarnings("unused")
-//public class MainController implements Initializable {
+//public class PF4JMainController implements Initializable {
 //
-//    private static final Logger logger = LoggerFactory.getLogger(MainController.class);
+//    private static final Logger logger = LoggerFactory.getLogger(PF4JMainController.class);
 //
 //    private static int tag = 1;
 //
@@ -179,8 +178,9 @@
 //
 //    private final Tooltip maxTip = new Tooltip(I18N.getOrDefault("opencgl.main.max.text"));
 //
+//    private SimplePluginManager pluginManager;
 //
-//    public MainController(Stage stage) {
+//    public PF4JMainController(Stage stage) {
 //        this.stage = stage;
 //        this.toggleGroup = new ToggleGroup();
 //        ToggleButtonsUtil.addAlwaysOneSelectedSupport(toggleGroup);
@@ -191,7 +191,7 @@
 //    public void initialize(URL location, ResourceBundle resources) {
 //        setComponentsI18n();
 //        new FlexibleListener(stage).enableDrag(rootPane);
-//        buildAndInitContextMenu();
+//        // buildAndInitContextMenu();
 //        Tooltip tooltip = new Tooltip(I18N.getOrDefault("opencgl.main.hang.click.info"));
 //        tooltip.setShowDelay(Duration.seconds(3));
 //        Tooltip.install(handUp, tooltip);
@@ -279,7 +279,7 @@
 //                    // 定义双击时间间隔（毫秒）
 //                    int DOUBLE_CLICK_TIME_GAP = 300;
 //                    if (currentTime - lastClickTime < DOUBLE_CLICK_TIME_GAP) {
-//                        Platform.runLater(MainController.this::autoFillWindows);
+//                        Platform.runLater(PF4JMainController.this::autoFillWindows);
 //                    }
 //                    lastClickTime = currentTime;
 //                }
@@ -397,18 +397,22 @@
 //
 //    private void initializeLoader() throws Exception {
 //        String pluginPath = Config.readExternalConfigure(OpenCGLSelfProperties.PLUGIN_PATH_KEY);
-//
-//        List<MenuInfo> menuInfos = PluginParserHelper.analysisComponentJson(pluginPath);
+//        pluginManager = new SimplePluginManager(Paths.get(pluginPath),
+//            Set.of("javafx.", "javax.swing.", "org.slf4j.", "com.opencgl.")); // adjust
+//        pluginManager.scanPlugins();
+//        List<PluginDescriptor> descriptors = pluginManager.listDescriptors();
 //        MFXLoader loader = new MFXLoader();
 //        loader.addView(MFXLoaderBean.of("HomePane", this.getClass().getClassLoader().getResource("com/opencgl/view/HomePane.fxml")).setBeanToNodeMapper(() -> createToggle("fas-circle-dot", "主页")).setDefaultRoot(true).get());
 //        loader.addView(MFXLoaderBean.of("allPane", this.getClass().getClassLoader().getResource("com/opencgl/view/GeneralComponentsPane.fxml")).setBeanToNodeMapper(() -> createToggle("fas-bars-progress", "全部")).get());
 //
-//        Map<String, List<MenuInfo>> menuMap = menuInfos.stream().collect(Collectors.groupingBy(MenuInfo::getFatherMenuName));
+//        Map<String, List<PluginDescriptor>> menuMap = descriptors.stream().collect(Collectors.groupingBy(pluginDescriptor -> pluginDescriptor.menuGroup));
 //        menuMap.forEach(new BiConsumer<>() {
 //            @Override
-//            public void accept(String s, List<MenuInfo> menuInfos) {
+//            public void accept(String s, List<PluginDescriptor> menuInfos) {
 //                int i = RandomNumberGeneratorUtil.generateRandomNumber(icons.size());
-//                loader.addView(MFXLoaderBean.of(s, this.getClass().getClassLoader().getResource("com/opencgl/view/GeneralComponentsPane.fxml")).setBeanToNodeMapper(() -> createToggle(icons.get(i).getDescription(), s)).get());
+//                loader.addView(MFXLoaderBean
+//                    .of(s, this.getClass().getClassLoader().getResource("com/opencgl/view/GeneralComponentsPane.fxml")).setBeanToNodeMapper(
+//                        () -> createToggle(icons.get(i).getDescription(), s)).get());
 //            }
 //        });
 //
@@ -418,13 +422,9 @@
 //                    if (bean.getViewName().equals("allPane")) {
 //                        MFXScrollPane scrollPane = (MFXScrollPane) bean.getRoot();
 //                        FlowPane flowPane = (FlowPane) scrollPane.getContent();
-//                        for (MenuInfo menuInfo : menuInfos) {
+//                        for (PluginDescriptor pluginDescriptor : descriptors) {
 //                            try {
-//                                flowPane.getChildren().add(buildMenuInfo(menuInfo));
-//                            }
-//                            catch (ClassNotFoundException | NoSuchMethodException e) {
-//                                logger.error("", e);
-//                                DialogUtil.showErrorInfo(e.getMessage());
+//                                flowPane.getChildren().add(buildMenuInfo(pluginDescriptor));
 //                            }
 //                            catch (Exception e) {
 //                                logger.error("", e);
@@ -433,7 +433,7 @@
 //                    }
 //                    menuMap.forEach((s, menuInfos1) -> {
 //                        if (bean.getViewName().equals(s)) {
-//                            for (MenuInfo menuInfo : menuInfos1) {
+//                            for (PluginDescriptor menuInfo : menuInfos1) {
 //                                MFXScrollPane scrollPane = (MFXScrollPane) bean.getRoot();
 //                                FlowPane flowPane = (FlowPane) scrollPane.getContent();
 //                                try {
@@ -457,6 +457,8 @@
 //                }).collect(Collectors.toList());
 //            navBar.getChildren().setAll(nodes);
 //        });
+//
+//
 //        loader.start();
 //    }
 //
@@ -479,11 +481,8 @@
 //        componentsLabel.setText(I18N.getOrDefault("opencgl.mainWindows.components"));
 //    }
 //
-//    private VBox buildMenuInfo(MenuInfo menuInfo)
-//        throws Exception {
-//        Image image = new Image(Objects.requireNonNull(
-//            Optional.ofNullable(PluginParserHelper.getFileInputStream(new File(Config.readExternalConfigure(OpenCGLSelfProperties.PLUGIN_PATH_KEY) + File.separator + menuInfo.getJarName()),
-//                menuInfo.getIconPath())).orElse(this.getClass().getResourceAsStream("/com/opencgl/icon/logo.png"))),
+//    private VBox buildMenuInfo(PluginDescriptor pluginDescriptor) {
+//        Image image = new Image(Objects.requireNonNull(this.getClass().getResourceAsStream("/com/opencgl/icon/logo.png")),
 //            70,
 //            50,
 //            true,
@@ -492,12 +491,12 @@
 //        ImageView headImageView = new ImageView(image);
 //        Label header = new Label();
 //        header.setGraphic(headImageView);
-//        Label body = new Label(menuInfo.getMenuName());
+//        Label body = new Label(pluginDescriptor.menuName);
 //        OpenCGLVbox vBox = new OpenCGLVbox();
 //        vBox.setStyle("-fx-background-color: lightblue;-fx-border-width: 0px");
 //        vBox.getChildren().addAll(header, body);
 //
-//        Tooltip pluginTip = new Tooltip(menuInfo.getPluginInfo());
+//        Tooltip pluginTip = new Tooltip(pluginDescriptor.menuInfo);
 //        pluginTip.setShowDelay(Duration.seconds(2.0));
 //        Tooltip.install(vBox, pluginTip);
 //
@@ -522,92 +521,126 @@
 //            vBox.setTranslateY(0); // 恢复原始位置
 //        });
 //
-//        FXMLLoader fxmlLoader = new FXMLLoader();
-//        try (PluginClassLoader pluginClassLoader = PluginClassLoader
-//            .create(
-//                new File(Config.readExternalConfigure(OpenCGLSelfProperties.PLUGIN_PATH_KEY) + menuInfo.getJarName()))) {
-//            //   FXMLLoader pluginFxmlLoader = (FXMLLoader) pluginClassLoader.loadClass("javafx.fxml.FXMLLoader").getDeclaredConstructor().newInstance();
-//            fxmlLoader.setLocation(pluginClassLoader.getResource(menuInfo.getFxmlPath()));
-//        }
-//        vBox.setOnMouseClicked(new EventHandler<>() {
-//            @Override
-//            public void handle(MouseEvent mouseEvent) {
-//                Long i = tabValidate(menuInfo.getMenuName(), componentJfxTabPane.getTabs());
-//                if (i != 0) {
-//                    componentJfxTabPane.getSelectionModel().select(Math.toIntExact(i - 1));
-//                    // 移除选中
-//                    ObservableList<Node> nodes = navBar.getChildren();
-//                    removeSelectedToggleButton(nodes);
 //
-//                    contentPane.getChildren().setAll(componentJfxTabPane);
-//                    return;
-//                }
-//                CompletableFuture.runAsync(() -> {
-//                    Platform.runLater(() -> LoadingUtil.show(contentPane));
-//                    Tab tab = new Tab();
-//                    tab.setClosable(true);
-//                    tab.setText(menuInfo.getMenuName());
+//        vBox.setOnMouseClicked(mouseEvent -> {
+//            Long i = tabValidate(pluginDescriptor.menuName, componentJfxTabPane.getTabs());
+//            if (i != 0) {
+//                componentJfxTabPane.getSelectionModel().select(Math.toIntExact(i - 1));
+//                // 移除选中
+//                ObservableList<Node> nodes = navBar.getChildren();
+//                removeSelectedToggleButton(nodes);
+//
+//                contentPane.getChildren().setAll(componentJfxTabPane);
+//                return;
+//            }
+//            String pluginId = pluginDescriptor.id;
+//            new Thread(() -> {
+//                Platform.runLater(() -> LoadingUtil.show(contentPane));
+//                Tab tab = new Tab();
+//                tab.setClosable(true);
+//
+//                tab.setId(pluginId);
+//                tab.setText(pluginDescriptor.menuName);
+//                try {
 //                    try {
-//                        if (StringUtils.isNotEmpty(menuInfo.getJarName())) {
-//                            PluginClassLoader pluginClassLoader = PluginClassLoader.create(new File(Config.readExternalConfigure(OpenCGLSelfProperties.PLUGIN_PATH_KEY) + File.separator + menuInfo.getJarName()));
-//                            FXMLLoader pluginFxmlLoader = (FXMLLoader) pluginClassLoader.loadClass("javafx.fxml.FXMLLoader").getDeclaredConstructor().newInstance();
-//                            pluginFxmlLoader.setClassLoader(pluginClassLoader);
-//                            URL resource = pluginClassLoader.getResource(menuInfo.getFxmlPath());
-//                            if (resource == null) {
-//                                throw new FileNotFoundException("FXML资源不存在：" + menuInfo.getFxmlPath());
-//                            }
-//                            pluginFxmlLoader.setLocation(resource);
-//                            Parent root = pluginFxmlLoader.load();
-//                            tab.setContent(root);
+//                        // 检查插件是否已经加载
+//                        PluginWrapper pluginWrapper = pluginManager.findWrapper(pluginId).orElseThrow();
 //
-//                            // 存储控制器，用于后续释放
-//                            Object controller = pluginFxmlLoader.getController();
-//                            tab.setUserData(controller);
+//                        // 如果插件已经启动，直接使用现有实例
+//                        if (pluginWrapper.state == PluginWrapper.State.STARTED && pluginWrapper.instance != null) {
+//                           // if ()
+//                            PluginUI ui = pluginWrapper.instance;
+//                            Object view = ui.createView();
+//                            Node fxNode = adaptToFx(view);
 //
-//                            ObservableList<Node> nodes = navBar.getChildren();
-//                            removeSelectedToggleButton(nodes);
-//                            Platform.runLater(() -> contentPane.getChildren().setAll(componentJfxTabPane));
-//                            tab.setOnClosed(event -> {
-//                                try {
-//                                    pluginClassLoader.close();
-//                                    if (componentJfxTabPane.getTabs().isEmpty()) {
-//                                        Platform.runLater(() -> {
-//                                            ToggleButton homePaneToggleButton = (ToggleButton) navBar.getChildren().get(0);
-//                                            contentPane.getChildren().setAll(homeRootPane);
-//                                            homePaneToggleButton.setSelected(true);
-//                                        });
-//                                    }
-//                                }
-//                                catch (IOException e) {
-//                                    logger.error("", e);
-//                                    Platform.runLater(() -> DialogUtil.showErrorInfo(e.getMessage()));
-//                                }
+//                            Platform.runLater(() -> {
+//                                tab.setContent(fxNode);
 //                            });
 //                        }
 //                        else {
-//                            tab.setContent(FXMLLoader.load(Objects.requireNonNull(getClass().getClassLoader().getResource(menuInfo.getFxmlPath()))));
+//                            // 插件未启动或需要重新加载
+//                            pluginManager.loadPlugin(pluginId);
+//
+//                            // 重新获取wrapper（可能状态已更新）
+//                            pluginWrapper = pluginManager.findWrapper(pluginId).orElseThrow();
+//                            var pluginCL = pluginWrapper.classLoader;
+//
+//                            ClassLoader old = Thread.currentThread().getContextClassLoader();
+//                            try {
+//                                Thread.currentThread().setContextClassLoader(pluginCL);
+//                                Class<?> clazz = pluginCL.loadClass(pluginWrapper.pluginDescriptor.uiClass);
+//                                PluginUI ui = (PluginUI) clazz.getDeclaredConstructor().newInstance();
+//
+//                                // 将插件ClassLoader存储到UI实例中，以便后续使用
+//                                if (ui instanceof PluginUIWithClassLoader) {
+//                                    ((com.opencgl.plugin.api.PluginUIWithClassLoader) ui).setPluginClassLoader(pluginCL);
+//                                }
+//
+//                                // 将插件实例存储到wrapper中，并更新状态
+//                                pluginWrapper.instance = ui;
+//                                pluginWrapper.state = PluginWrapper.State.STARTED;
+//
+//                                Object view = ui.createView();
+//
+//                                // adapt to JavaFX Node
+//                                Node fxNode = adaptToFx(view);
+//
+//                                Platform.runLater(() -> {
+//                                    tab.setContent(fxNode);
+//                                });
+//                            }
+//                            finally {
+//                                // 注意：这里不恢复ClassLoader，让插件执行期间保持插件ClassLoader
+//                                Thread.currentThread().setContextClassLoader(old);
+//                            }
 //                        }
-//                        Platform.runLater(() -> {
-//                            componentJfxTabPane.getTabs().add(tab);
-//                            componentJfxTabPane.getSelectionModel().select(tab);
+//
+//                        ObservableList<Node> nodes = navBar.getChildren();
+//                        removeSelectedToggleButton(nodes);
+//                        Platform.runLater(() -> contentPane.getChildren().setAll(componentJfxTabPane));
+//                        tab.setOnClosed(event -> {
+//                            try {
+//                                // 获取插件wrapper并检查状态
+//                                var pluginWrapperForClose = pluginManager.findWrapper(pluginId).orElse(null);
+//                                if (pluginWrapperForClose != null && pluginWrapperForClose.instance != null) {
+//                                    // 调用插件的dispose方法
+//                                    pluginWrapperForClose.instance.dispose();
+//                                }
+//
+//                                // 卸载插件（清理ClassLoader和实例）
+//                                pluginManager.unloadPlugin(pluginId);
+//                                System.gc();
+//                                logger.info("插件 {} 已成功卸载", pluginId);
+//                            }
+//                            catch (Exception e) {
+//                                logger.error("卸载插件 {} 时发生错误", pluginId, e);
+//                            }
+//
+//                            if (componentJfxTabPane.getTabs().isEmpty()) {
+//                                Platform.runLater(() -> {
+//                                    ToggleButton homePaneToggleButton = (ToggleButton) navBar.getChildren().get(0);
+//                                    contentPane.getChildren().setAll(homeRootPane);
+//                                    homePaneToggleButton.setSelected(true);
+//                                });
+//                            }
 //                        });
 //                    }
 //                    catch (Exception e) {
 //                        logger.error("", e);
-//                        Platform.runLater(() -> DialogUtil.showErrorInfo(I18N.getOrDefault("opencgl.mainWindows.loadPlugin.error") + e.getMessage()));
 //                    }
-//                    finally {
-//                        Platform.runLater(() -> LoadingUtil.remove(contentPane));
-//                    }
-//                }).exceptionally(ex -> {
-//                    logger.error("插件加载异步任务失败", ex);
 //                    Platform.runLater(() -> {
-//                        LoadingUtil.remove(contentPane); // 确保加载动画移除
-//                        DialogUtil.showErrorInfo("插件加载失败：" + ex.getMessage());
+//                        componentJfxTabPane.getTabs().add(tab);
+//                        componentJfxTabPane.getSelectionModel().select(tab);
 //                    });
-//                    return null;
-//                });
-//            }
+//                }
+//                catch (Exception e) {
+//                    logger.error("", e);
+//                    Platform.runLater(() -> DialogUtil.showErrorInfo(I18N.getOrDefault("opencgl.mainWindows.loadPlugin.error") + e.getMessage()));
+//                }
+//                finally {
+//                    Platform.runLater(() -> LoadingUtil.remove(contentPane));
+//                }
+//            }, "plugin-loader-" + pluginId).start();
 //        });
 //        return vBox;
 //    }
@@ -676,5 +709,32 @@
 //        else {
 //            TooltipUtil.showToast(rootPane, I18N.getOrDefault("opencgl.main.tabIsNotExist"), 30.0);
 //        }
+//    }
+//
+//    private Node adaptToFx(Object view) {
+//        if (view == null) return new Label("Empty view");
+//        if (view instanceof Node) return (Node) view;
+//        if (view instanceof JComponent) {
+//            SwingNode sn = new SwingNode();
+//            Platform.runLater(() -> sn.setContent((JComponent) view));
+//            return sn;
+//        }
+//        if (view instanceof String) {
+//            String s = (String) view;
+//            WebView web = new WebView();
+//            if (s.startsWith("http://") || s.startsWith("https://") || s.startsWith("file:/")) {
+//                web.getEngine().load(s);
+//            }
+//            else {
+//                web.getEngine().loadContent(s);
+//            }
+//            return web;
+//        }
+//        if (view instanceof URL) {
+//            WebView web = new WebView();
+//            web.getEngine().load(((URL) view).toExternalForm());
+//            return web;
+//        }
+//        return new Label("Unsupported view type: " + view.getClass());
 //    }
 //}

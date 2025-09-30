@@ -2,9 +2,13 @@ package com.opencgl.util;
 
 import java.io.File;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.ServiceLoader;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -21,6 +25,7 @@ import com.opencgl.listener.Config;
 import com.opencgl.model.MenuInfo;
 import com.opencgl.model.PluginInfo;
 import com.opencgl.model.OpenCGLSelfProperties;
+import com.opencgl.plugin.api.PluginUI;
 
 /**
  * @author Chance.W
@@ -37,7 +42,7 @@ public class PluginParserHelper {
 
     private static final String COMPONENT_NAME = "com/opencgl/config/menuComponent.json";
 
-    public static List<MenuInfo> analysisComponentJson() throws Exception {
+    public static List<MenuInfo> analysisComponentJson(String pluginPath) throws Exception {
         try {
             if (CollectionUtils.isNotEmpty(MENU_INFOS)) {
                 //此处优化会导致新增插件包必须重启应用才能生效,减少不必要的重复解析文件
@@ -69,6 +74,8 @@ public class PluginParserHelper {
                         .jarName(file.getName())
                         .iconPath(e.getIconPath())
                         .pluginInfo(e.getPluginInfo())
+                        .jarPath(pluginFile.getAbsolutePath())
+                        //  .pluginUI(tempPluginMap.get(e.getPluginName()))
                         .build();
                     menuInfo.setFatherMenuName(StringUtils.defaultIfEmpty(e.getFatherName(), null));
                     MENU_INFOS.add(menuInfo);
@@ -107,11 +114,35 @@ public class PluginParserHelper {
     }
 
     public static InputStream getFileInputStream(File pluginFile, String filePath) throws Exception {
-        JarFile jarFile = new JarFile(pluginFile);
-        JarEntry jarEntry = jarFile.getJarEntry(filePath);
-        if (null == jarEntry) {
-            return null;
+        try (JarFile jarFile = new JarFile(pluginFile)) {
+            JarEntry jarEntry = jarFile.getJarEntry(filePath);
+            if (null == jarEntry) {
+                return null;
+            }
+            return jarFile.getInputStream(jarEntry);
         }
-        return jarFile.getInputStream(jarEntry);
+    }
+
+
+    public static List<PluginUI> initPluginInfo() {
+        List<PluginUI> pluginUIList = new ArrayList<>(32);
+        try {
+            File path = new File(Config.readExternalConfigure(OpenCGLSelfProperties.PLUGIN_PATH_KEY));
+            for (File file : Objects.requireNonNull(path.listFiles())) {
+                if (file.getName().endsWith(".jar")) {
+                    URLClassLoader cl = new URLClassLoader(new URL[]{file.toPath().toUri().toURL()}, PluginParserHelper.class.getClassLoader());
+                    ServiceLoader<PluginUI> sl = ServiceLoader.load(PluginUI.class, cl);
+                    for (PluginUI pluginUI : sl) {
+                        logger.info("begin init plugin {}", pluginUI.name());
+                        pluginUIList.add(pluginUI);
+                    }
+                }
+            }
+        }
+        catch (Exception e) {
+            logger.error("init plugin error {}", e.getMessage(), e);
+        }
+        return pluginUIList;
+
     }
 }
