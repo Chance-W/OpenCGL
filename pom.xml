@@ -8,15 +8,19 @@
     <artifactId>OpenCGL_New</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <software-version>2.1.1</software-version>
     </properties>
     <profiles>
         <profile>
             <id>windows</id>
             <properties>
-                <platform>windows</platform>
+                <icon-name>icon.ico</icon-name>
+                <package-type>exe</package-type>
+                <package-args>--win-per-user-install --win-dir-chooser --win-menu</package-args>
             </properties>
             <activation>
                 <!-- 设置默认激活这个配置 -->
@@ -26,13 +30,17 @@
         <profile>
             <id>mac</id>
             <properties>
-                <platform>mac</platform>
+                <icon-name>mac-icon.icns</icon-name>
+                <package-type>dmg</package-type>
+                <package-args/>
             </properties>
         </profile>
         <profile>
             <id>linux</id>
             <properties>
-                <platform>linux</platform>
+                <icon-name>icon.ico</icon-name>
+                <package-type>rpm</package-type>
+                <package-args/>
             </properties>
         </profile>
     </profiles>
@@ -122,12 +130,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.25</version>
+            <version>2.0.6</version>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.25</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.11</version>
         </dependency>
 
         <!--sqllite连接驱动-->
@@ -172,7 +180,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.1</version>
+                <version>3.4.1</version>
                 <configuration>
                     <finalName>OpenCGL</finalName>
                     <archive>
@@ -180,7 +188,6 @@
                         <addMavenDescriptor>false</addMavenDescriptor>
                         <manifest>
                             <!--运行jar包时运行的主类，要求类全名-->
-                            <!--<mainClass>com.xtool.opencgl.AppLauncher</mainClass>-->
                             <mainClass>com.opencgl.OpenCglStartApplication</mainClass>
 
                             <!-- 是否指定项目classpath下的依赖 -->
@@ -220,126 +227,77 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>io.github.fvarrui</groupId>
-                <artifactId>javapackager</artifactId>
-                <version>1.7.2</version>
-                <configuration>
-                    <name>OpenCGL</name>
-                    <organizationName>Chance.W Personal</organizationName>
-                    <organizationUrl>https://www.tool-graphical.top</organizationUrl>
-                    <description>OpenCGL</description>
-                    <!-- mandatory -->
-                    <mainClass>com.opencgl.OpenCglStartApplication</mainClass>
-                    <!-- optional -->
-                    <bundleJre>true</bundleJre>
-                    <generateInstaller>true</generateInstaller>
-                    <administratorRequired>true</administratorRequired>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.ant</groupId>
+                        <artifactId>ant</artifactId>
+                        <version>1.10.12</version>
+                    </dependency>
+                </dependencies>
                 <executions>
                     <execution>
+                        <id>generate-jre-application</id>
                         <phase>package</phase>
                         <goals>
-                            <goal>package</goal>
+                            <goal>run</goal>
                         </goals>
                         <configuration>
-                            <name>OpenCGL</name>
-                            <organizationName>Chance.W Personal</organizationName>
-                            <organizationUrl>https://www.tool-graphical.top</organizationUrl>
-                            <description>OpenCGL</description>
-                            <!-- mandatory -->
-                            <mainClass>com.opencgl.OpenCglStartApplication</mainClass>
-                            <!-- optional -->
-                            <bundleJre>true</bundleJre>
-                            <customizedJre>true</customizedJre>
-                            <jrePath>${project.basedir}\src\main\resources\jre</jrePath>
-                            <generateInstaller>true</generateInstaller>
-                            <administratorRequired>true</administratorRequired>
-                            <!--auto|linux|mac|windows-->
-                            <!-- <platform>windows</platform>-->
-                            <platform>${platform}</platform>
-                            <!--windows jdk-->
+                            <target>
 
-                            <additionalResources>
-                                <additionalResource>src/main/resources</additionalResource>
-                                <additionalResource>src/main/resources/OpenCGL.l4j.ini</additionalResource>
-                            </additionalResources>
-                            <assetsDir>${project.build.directory}/assets/</assetsDir>
-                            <winConfig>
-                                <icoFile>
-                                    ${project.basedir}\src\main\resources\com\opencgl\icon\icon.ico
-                                </icoFile>
-                                <setupMode>askTheUser</setupMode>
-                                <generateSetup>true</generateSetup>
-                                <generateMsi>false</generateMsi>
-                                <generateMsm>false</generateMsm>
-                                <fileVersion>1.0.0.0</fileVersion>
-                                <txtFileVersion>${version}</txtFileVersion>
-                                <disableDirPage>false</disableDirPage>
-                                <disableFinishedPage>false</disableFinishedPage>
-                                <createDesktopIconTask>true</createDesktopIconTask>
-                                <removeOldLibs>true</removeOldLibs>
-                                <language>chinese</language>
-                                <setupLanguages>
-                                    <chinesesimp>
-                                        ${project.basedir}\src\main\resources\com\opencgl\languages\ChineseSimplified.isl
-                                    </chinesesimp>
-                                    <english>compiler:\Default.isl</english>
-                                </setupLanguages>
-                            </winConfig>
-                            <linuxConfig>
-                                <pngFile>${project.build.directory}/classes/opencgl/images/icon/logo.png
-                                </pngFile>
-                                <generateAppImage>false</generateAppImage>
-                                <generateDeb>true</generateDeb>
-                                <generateRpm>true</generateRpm>
-                                <wrapJar>true</wrapJar>
-                                <categories>
-                                    <category>Utility</category>
-                                </categories>
-                            </linuxConfig>
-                            <macConfig>
-                                <appId>OpenCGL</appId>
-                                <icnsFile>{project.build.directory}/classes/com/opencgl/images/icon/icon.ico</icnsFile>
-                                <generateDmg>pkg</generateDmg>
-                                <generatePkg>false</generatePkg>
-                                <relocateJar>false</relocateJar>
-                                <!--SCRIPT|UNIVERSAL|X86_64|-->
-                                <macStartup>ARM64</macStartup>
+                                <!-- 步骤1：收集 lib 目录下所有 Jar 文件（解析 *.jar 通配符） -->
+                                <fileset id="lib.jars" dir="${project.build.directory}/lib" includes="**/*.jar"/> <!-- 匹配 lib 下所有 Jar（包括子目录，若有） -->
 
-                                <!-- signing properties -->
-                                <developerId>OpenCGL</developerId>
-                                <!--<entitlements>src/main/resources/com.opencgl/mac/opencgl.plist</entitlements>-->
-                                <codesignApp>true</codesignApp>
-                                <hardenedCodesign>true</hardenedCodesign>
+                                <!-- 步骤2：将 Jar 文件列表转换为「空格分隔的路径字符串」（供 jdeps 使用） -->
+                                <pathconvert property="jar.paths" refid="lib.jars" pathsep=" ">
+                                    <!-- 可选：若路径含空格，给每个路径加引号（避免解析错误） -->
+                                    <mapper type="regexp" from="([^\\]+\.jar)" to="&quot;\1&quot;"/>
+                                </pathconvert>
+<!--                                <echo message="模块： ${jar.paths}"/>-->
+                                <!-- 用jdeps分析模块 -->
+                                <exec executable="${java.home}/bin/jdeps" outputproperty="module.deps">
+                                    <arg line="-q --multi-release 21"/>
+                                    <arg line="--ignore-missing-deps"/>
+                                    <arg line="--print-module-deps ${jar.paths} ${project.build.directory}/OpenCGL.jar"/>
+                                </exec>
+                                <echo message="echo 依赖的 Java 模块： ${module.deps}"/>
 
-                                <!-- properties used for DMG disk image generation -->
-                                <backgroundImage>${project.build.directory}/classes/com/opencgl/mac/icon/256.png
-                                </backgroundImage>
-                                <windowX>10</windowX>
-                                <windowY>10</windowY>
-                                <windowWidth>300</windowWidth>
-                                <windowHeight>300</windowHeight>
-                                <iconSize>100</iconSize>
-                                <textSize>100</textSize>
-                                <iconX>20</iconX>
-                                <iconY>20</iconY>
-                                <appsLinkIconX>30</appsLinkIconX>
-                                <appsLinkIconY>30</appsLinkIconY>
-                                <volumeIcon>{project.build.directory}/classes/com/opencgl/mac/icon/256.png</volumeIcon>
-                                <volumeName>${name}</volumeName>
+                                <exec executable="${java.home}/bin/jlink">
+                                    <arg line="--module-path ${java.home}/jmods"/>
+                                    <arg line="--add-modules ${module.deps}"/>
+                                    <arg line="--output ${project.build.directory}/custom-jre"/>
+                                    <arg line="--strip-debug --no-man-pages --no-header-files --compress=2"/>
+                                </exec>
 
-                                <!-- properties used for Info.plist file generation -->
-                                <infoPlist>
-                                    <!--|APPL|FMWK-->
-                                    <bundlePackageType>BNDL</bundlePackageType>
-                                </infoPlist>
-                            </macConfig>
+                                <copy todir="${project.build.directory}/package-output/lib">
+                                    <fileset dir="${project.build.directory}/lib" includes="**/*"/>
+                                </copy>
+                                <copy todir="${project.build.directory}/package-output">
+                                    <fileset dir="${project.build.directory}/" includes="**/OpenCGL.jar"/>
+                                </copy>
+
+                                <exec executable="${java.home}/bin/jpackage">
+                                    <arg line="--type ${package-type}"/>
+                                    <arg line="--main-jar OpenCGL.jar"/>
+                                    <arg line="--name OpenCGL-Tool"/>
+                                    <arg line="--icon ${project.build.outputDirectory}/com/opencgl/icon/${icon-name}"/>
+                                    <arg line="--app-version ${software-version}"/>
+                                    <arg line="--vendor Chance.W"/>
+                                    <arg line="-i ${project.build.directory}/package-output"/>
+                                    <arg line="--dest ${project.build.directory}"/>
+                                    <arg line="--main-class com.opencgl.OpenCglStartApplication"/>
+                                    <arg line="--verbose ${package-args}"/>
+                                    <arg line="--runtime-image ${project.build.directory}/custom-jre"/>
+                                </exec>
+                            </target>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
 
-            <!--含依赖，但不包含jre的完整jar包，需要结合jdk19使用-->
+            <!--含依赖，但不包含jre的完整jar包，需要结合jdk使用-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
