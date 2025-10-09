@@ -253,8 +253,9 @@
                                 <!-- 步骤2：将 Jar 文件列表转换为「空格分隔的路径字符串」（供 jdeps 使用） -->
                                 <pathconvert property="jar.paths" refid="lib.jars" pathsep=" ">
                                     <!-- 可选：若路径含空格，给每个路径加引号（避免解析错误） -->
-                                    <mapper type="regexp" from="([^\\]+\.jar)" to="&quot;\1&quot;"/>
+                                    <mapper type="regexp" from="(.*\.jar)" to="&quot;\1&quot;"/>
                                 </pathconvert>
+                                <echo message="检索到的模块： ${jar.paths}"/>
 <!--                                <echo message="模块： ${jar.paths}"/>-->
                                 <!-- 用jdeps分析模块 -->
                                 <exec executable="${java.home}${file.separator}bin${file.separator}jdeps" outputproperty="module.deps">
