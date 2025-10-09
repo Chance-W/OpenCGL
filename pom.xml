@@ -20,7 +20,7 @@
             <properties>
                 <icon-name>icon.ico</icon-name>
                 <package-type>exe</package-type>
-                <package-args>--win-per-user-install --win-dir-chooser --win-menu</package-args>
+                <package-args>--win-per-user-install --win-dir-chooser --win-menu  --win-shortcut --win-shortcut-prompt --install-dir OpenCGL</package-args>
             </properties>
             <activation>
                 <!-- 设置默认激活这个配置 -->
@@ -248,7 +248,7 @@
                             <target>
 
                                 <!-- 步骤1：收集 lib 目录下所有 Jar 文件（解析 *.jar 通配符） -->
-                                <fileset id="lib.jars" dir="${project.build.directory}/lib" includes="**/*.jar"/> <!-- 匹配 lib 下所有 Jar（包括子目录，若有） -->
+                                <fileset id="lib.jars" dir="${project.build.directory}${file.separator}lib" includes="**/*.jar"/> <!-- 匹配 lib 下所有 Jar（包括子目录，若有） -->
 
                                 <!-- 步骤2：将 Jar 文件列表转换为「空格分隔的路径字符串」（供 jdeps 使用） -->
                                 <pathconvert property="jar.paths" refid="lib.jars" pathsep=" ">
@@ -257,39 +257,39 @@
                                 </pathconvert>
 <!--                                <echo message="模块： ${jar.paths}"/>-->
                                 <!-- 用jdeps分析模块 -->
-                                <exec executable="${java.home}/bin/jdeps" outputproperty="module.deps">
+                                <exec executable="${java.home}${file.separator}bin${file.separator}jdeps" outputproperty="module.deps">
                                     <arg line="-q --multi-release 21"/>
                                     <arg line="--ignore-missing-deps"/>
-                                    <arg line="--print-module-deps ${jar.paths} ${project.build.directory}/OpenCGL.jar"/>
+                                    <arg line="--print-module-deps ${jar.paths} ${project.build.directory}${file.separator}OpenCGL.jar"/>
                                 </exec>
                                 <echo message="echo 依赖的 Java 模块： ${module.deps}"/>
 
-                                <exec executable="${java.home}/bin/jlink">
-                                    <arg line="--module-path ${java.home}/jmods"/>
+                                <exec executable="${java.home}${file.separator}bin${file.separator}jlink">
+                                    <arg line="--module-path ${java.home}${file.separator}jmods"/>
                                     <arg line="--add-modules ${module.deps}"/>
-                                    <arg line="--output ${project.build.directory}/custom-jre"/>
+                                    <arg line="--output ${project.build.directory}${file.separator}custom-jre"/>
                                     <arg line="--strip-debug --no-man-pages --no-header-files --compress=2"/>
                                 </exec>
 
-                                <copy todir="${project.build.directory}/package-output/lib">
-                                    <fileset dir="${project.build.directory}/lib" includes="**/*"/>
+                                <copy todir="${project.build.directory}${file.separator}package-output${file.separator}lib">
+                                    <fileset dir="${project.build.directory}${file.separator}lib" includes="**/*"/>
                                 </copy>
-                                <copy todir="${project.build.directory}/package-output">
-                                    <fileset dir="${project.build.directory}/" includes="**/OpenCGL.jar"/>
+                                <copy todir="${project.build.directory}${file.separator}package-output">
+                                    <fileset dir="${project.build.directory}${file.separator}" includes="**/OpenCGL.jar"/>
                                 </copy>
 
-                                <exec executable="${java.home}/bin/jpackage">
+                                <exec executable="${java.home}${file.separator}bin${file.separator}jpackage">
                                     <arg line="--type ${package-type}"/>
                                     <arg line="--main-jar OpenCGL.jar"/>
                                     <arg line="--name OpenCGL-Tool"/>
-                                    <arg line="--icon ${project.build.outputDirectory}/com/opencgl/icon/${icon-name}"/>
+                                    <arg line="--icon ${project.build.outputDirectory}${file.separator}com${file.separator}opencgl${file.separator}icon${file.separator}${icon-name}"/>
                                     <arg line="--app-version ${software-version}"/>
                                     <arg line="--vendor Chance.W"/>
-                                    <arg line="-i ${project.build.directory}/package-output"/>
+                                    <arg line="-i ${project.build.directory}${file.separator}package-output"/>
                                     <arg line="--dest ${project.build.directory}"/>
                                     <arg line="--main-class com.opencgl.OpenCglStartApplication"/>
                                     <arg line="--verbose ${package-args}"/>
-                                    <arg line="--runtime-image ${project.build.directory}/custom-jre"/>
+                                    <arg line="--runtime-image ${project.build.directory}${file.separator}custom-jre"/>
                                 </exec>
                             </target>
                         </configuration>
