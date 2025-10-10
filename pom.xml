@@ -40,7 +40,7 @@
             <properties>
                 <icon-name>icon.ico</icon-name>
                 <package-type>rpm</package-type>
-                <package-args/>
+                <package-args>--linux-shortcut --linux-app-category Utility --linux-app-release ${software-version}</package-args>
             </properties>
         </profile>
     </profiles>
