@@ -7,7 +7,7 @@ import java.net.URL;
  * @author Chance.W
  * @version 1.0
  * @CreateDate 2023/06/04 11:11
- * @since v9.0
+ * @since v2.0
  */
 public class ResourcesLoader {
     private ResourcesLoader() {

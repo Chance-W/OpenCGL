@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import io.github.palexdev.materialfx.controls.MFXButton?>
+<?import io.github.palexdev.materialfx.controls.MFXComboBox?>
+<?import io.github.palexdev.materialfx.controls.MFXTextField?>
+<?import io.github.palexdev.mfxresources.fonts.MFXFontIcon?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.opencgl.controller.PluginMarketController" prefHeight="600.0" prefWidth="900.0">
+    <top>
+        <VBox BorderPane.alignment="CENTER">
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <padding>
+                    <Insets bottom="10.0" left="20.0" right="20.0" top="15.0"/>
+                </padding>
+                <Label fx:id="marketTitleLabel" styleClass="market-title" text="应用市场" />
+                
+                <Region HBox.hgrow="ALWAYS" />
+                
+                <MFXButton fx:id="manageRegistriesBtn" text="源管理" buttonType="RAISED" styleClass="market-toolbar-button" onAction="#handleManageRegistries">
+                    <graphic>
+                        <MFXFontIcon description="fas-gears" size="14" styleClass="market-toolbar-icon"/>
+                    </graphic>
+                </MFXButton>
+                <MFXButton fx:id="refreshFetchBtn" text="刷新获取" buttonType="RAISED" styleClass="market-toolbar-button" onAction="#handleRefresh">
+                    <graphic>
+                        <MFXFontIcon description="fas-angles-up" size="14" styleClass="market-toolbar-icon"/>
+                    </graphic>
+                </MFXButton>
+            </HBox>
+            
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <padding>
+                    <Insets bottom="15.0" left="20.0" right="20.0" top="5.0"/>
+                </padding>
+                <MFXTextField fx:id="searchField" promptText="搜索插件名称..." prefWidth="250" floatMode="BORDER" />
+                <MFXComboBox fx:id="categoryComboBox" promptText="全部分类" prefWidth="150" floatMode="BORDER" />
+                
+                <Region HBox.hgrow="ALWAYS" />
+                
+                <MFXButton fx:id="viewToggleBtn" text="网格视图" buttonType="RAISED" styleClass="market-toolbar-button" onAction="#toggleView">
+                    <graphic>
+                        <MFXFontIcon fx:id="viewToggleIcon" description="fas-bars-staggered" size="14" styleClass="market-toolbar-icon"/>
+                    </graphic>
+                </MFXButton>
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <StackPane fx:id="toastPane" BorderPane.alignment="CENTER">
+            <BorderPane.margin>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="0"/>
+            </BorderPane.margin>
+            
+            <ListView fx:id="marketListView" visible="true" />
+            
+            <ScrollPane fx:id="gridScrollPane" fitToWidth="true" visible="false" styleClass="market-surface">
+                <FlowPane fx:id="marketGridView" hgap="15" vgap="15" prefWrapLength="800" styleClass="market-surface">
+                    <padding>
+                        <Insets top="5" right="5" bottom="5" left="5"/>
+                    </padding>
+                </FlowPane>
+            </ScrollPane>
+        </StackPane>
+    </center>
+</BorderPane>

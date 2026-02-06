@@ -1,16 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import io.github.palexdev.materialfx.controls.MFXScrollPane?>
+<?import io.github.palexdev.materialfx.controls.MFXTextField?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.FlowPane?>
-<MFXScrollPane fx:id="generalComponentsGridPane" stylesheets="@../css/MFXScrollPane.css"
-               fx:controller="com.opencgl.controller.GeneralComponentsController"
-               fitToWidth="true"
-               xmlns="http://javafx.com/javafx/17"
-               xmlns:fx="http://javafx.com/fxml">
-    <FlowPane fx:id="flowPanel">
-       <padding>
-           <Insets top="20"/>
-       </padding>
-    </FlowPane>
-</MFXScrollPane>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="rootContainer"
+      fx:controller="com.opencgl.controller.GeneralComponentsController"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml">
+    
+    <!-- 搜索栏 -->
+    <HBox alignment="CENTER_RIGHT" style="-fx-padding: 10 15 10 15;">
+        <MFXTextField fx:id="searchField" floatMode="BORDER" floatingText="搜索插件..." prefWidth="250" />
+    </HBox>
+    
+    <!-- 插件列表 -->
+    <MFXScrollPane fx:id="generalComponentsGridPane" fitToWidth="true" VBox.vgrow="ALWAYS">
+        <FlowPane fx:id="flowPanel" hgap="12.0" vgap="12.0">
+            <padding>
+                <Insets bottom="12" left="12" right="12" top="12"/>
+            </padding>
+        </FlowPane>
+    </MFXScrollPane>
+</VBox>

@@ -11,7 +11,7 @@ import javafx.stage.Stage;
  * @author Chance.W
  * @version 1.0
  * @CreateDate 2023/06/03 16:56
- * @since v9.0
+ * @since v2.0
  */
 public class FlexibleListener implements EventHandler<MouseEvent> {
 
@@ -30,9 +30,9 @@ public class FlexibleListener implements EventHandler<MouseEvent> {
     private static final double MIN_HEIGHT = 720.0D;
 
     /**
-     * 是否处于调整窗口状态
+     * 是否处于调整窗口状态（实例变量，避免多窗口冲突）
      */
-    private static boolean within;
+    private boolean within;
 
     private final Stage stage;
 
@@ -53,8 +53,11 @@ public class FlexibleListener implements EventHandler<MouseEvent> {
             double height = stage.getHeight();
 
             // 鼠标光标初始为默认类型，若未进入调整窗口状态，保持默认类型
-            Cursor cursorType = position(x, y, width, height);
-            node.setCursor(cursorType);
+            PositionResult result = stage.isMaximized() || stage.isFullScreen()
+                ? new PositionResult(Cursor.DEFAULT, false)
+                : position(x, y, width, height);
+            this.within = result.within;
+            node.setCursor(result.cursor);
         }
 
         if (event.getEventType() == MouseEvent.MOUSE_DRAGGED && within) {
@@ -110,6 +113,23 @@ public class FlexibleListener implements EventHandler<MouseEvent> {
         this.node = node;
         node.setOnMouseMoved(this);
         node.setOnMouseDragged(this);
+        node.addEventHandler(MouseEvent.MOUSE_EXITED, event -> resetCursor());
+        node.addEventHandler(MouseEvent.MOUSE_RELEASED, event -> resetCursor());
+        stage.maximizedProperty().addListener((observable, oldValue, maximized) -> {
+            if (maximized) resetCursor();
+        });
+        stage.fullScreenProperty().addListener((observable, oldValue, fullScreen) -> {
+            if (fullScreen) resetCursor();
+        });
+    }
+
+    private void resetCursor() {
+        within = false;
+        if (node != null) node.setCursor(Cursor.DEFAULT);
+    }
+
+    static Cursor cursorFor(double x, double y, double width, double height) {
+        return position(x, y, width, height).cursor;
     }
 
     /**
@@ -120,54 +140,62 @@ public class FlexibleListener implements EventHandler<MouseEvent> {
      * @param y      鼠标坐标y
      * @param width  stage窗口的宽度
      * @param height stage窗口的高度
-     * @return 鼠标显示类型
+     * @return 位置结果，包含光标类型和是否在调整区域
      */
-    private static Cursor position(double x, double y, double width, double height) {
-        within = true;
-
+    private static PositionResult position(double x, double y, double width, double height) {
         //左上判断
         if (x < RESIZE_WIDTH && x >= 0 && y >= 0 && y < RESIZE_WIDTH) {
-            return Cursor.NW_RESIZE;
+            return new PositionResult(Cursor.NW_RESIZE, true);
         }
 
         //左侧判断
         if (x < RESIZE_WIDTH && x >= 0 && y >= RESIZE_WIDTH && y < height - RESIZE_WIDTH) {
-            return Cursor.W_RESIZE;
+            return new PositionResult(Cursor.W_RESIZE, true);
         }
 
         //左下判断
         if (x < RESIZE_WIDTH && x >= 0 && y >= height - RESIZE_WIDTH && y < height) {
-            return Cursor.SW_RESIZE;
+            return new PositionResult(Cursor.SW_RESIZE, true);
         }
 
         //上侧判断
         if (x < width - RESIZE_WIDTH && x >= RESIZE_WIDTH && y >= 0 && y < RESIZE_WIDTH) {
-            return Cursor.N_RESIZE;
+            return new PositionResult(Cursor.N_RESIZE, true);
         }
 
         //上右判断
         if (x < width && x >= width - RESIZE_WIDTH && y >= 0 && y < RESIZE_WIDTH) {
-            return Cursor.NE_RESIZE;
+            return new PositionResult(Cursor.NE_RESIZE, true);
         }
 
         //右侧判断
         if (x < width && x >= width - RESIZE_WIDTH && y >= RESIZE_WIDTH && y < height - RESIZE_WIDTH) {
-            return Cursor.E_RESIZE;
+            return new PositionResult(Cursor.E_RESIZE, true);
         }
 
         //右下判断
         if (x < width && x >= width - RESIZE_WIDTH && y >= height - RESIZE_WIDTH && y < height) {
-            return Cursor.SE_RESIZE;
+            return new PositionResult(Cursor.SE_RESIZE, true);
         }
 
         //下方判断
         if (x < width - RESIZE_WIDTH && x >= RESIZE_WIDTH && y >= height - RESIZE_WIDTH && y < height) {
-            return Cursor.S_RESIZE;
+            return new PositionResult(Cursor.S_RESIZE, true);
         }
 
-        within = false;
-        return Cursor.DEFAULT;
+        return new PositionResult(Cursor.DEFAULT, false);
+    }
+
+    /**
+     * 位置结果内部类
+     */
+    private static class PositionResult {
+        final Cursor cursor;
+        final boolean within;
+
+        PositionResult(Cursor cursor, boolean within) {
+            this.cursor = cursor;
+            this.within = within;
+        }
     }
 }
-
-

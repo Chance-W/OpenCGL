@@ -1,0 +1,64 @@
+name: Build
+
+on:
+  workflow_call:
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: opencgl-build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025
+            label: windows-x64
+            architecture: x64
+          - os: macos-15-intel
+            label: macos-x64
+            architecture: x64
+          - os: macos-15
+            label: macos-arm64
+            architecture: aarch64
+          - os: ubuntu-24.04
+            label: linux-x64
+            architecture: x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out host
+        uses: actions/checkout@v7
+        with:
+          path: host
+      - name: Set up build environment
+        uses: ./host/.github/actions/setup-opencgl
+        with:
+          architecture: ${{ matrix.architecture }}
+      - name: Install Linux packaging prerequisite
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y fakeroot
+      - name: Build, test, and package
+        run: python host/build/build.py package --output release/${{ matrix.label }}
+      - name: Upload test diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports-${{ matrix.label }}
+          path: |
+            host/target/surefire-reports/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload platform artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenCGL-Tool-${{ matrix.label }}
+          path: release/${{ matrix.label }}/
+          if-no-files-found: error

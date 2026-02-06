@@ -1,0 +1,22 @@
+name: Setup OpenCGL build
+description: Install the pinned Azul Zulu JDK and cache Maven dependencies
+inputs:
+  architecture:
+    description: JDK architecture (x64 or aarch64)
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Set up Azul Zulu JDK 21
+      uses: actions/setup-java@v6
+      with:
+        distribution: zulu
+        java-version: '21'
+        architecture: ${{ inputs.architecture }}
+        cache: maven
+    - name: Print pinned build environment
+      shell: bash
+      run: |
+        java --version
+        mvn --version
+        python -c "import platform; print('native architecture:', platform.machine())"

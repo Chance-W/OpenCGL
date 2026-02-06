@@ -1,21 +1,18 @@
-
-@import 'MFXColors.css';
-
 /**************************************************
  * Root
 **************************************************/
 .rootPane {
-   /* -fx-background-color: white;*/
+    -fx-background-color: -theme-bg-primary;
     -fx-background-radius: 10;
-    -fx-border-color: #ebebeb;
+    -fx-border-color: -theme-border;
     -fx-border-radius: 10;
 }
 
 /**************************************************
- * Window Header
+ * Window Header 右上角的几个组件
 **************************************************/
 .rootPane .handUp-icon {
-    -mfx-color: -mfx-black;
+    -mfx-color: -theme-text-primary;
     -fx-opacity: 0.5;
 }
 
@@ -24,8 +21,8 @@
 }
 
 .rootPane .close-icon {
-    -mfx-color: -mfx-red;
-    -fx-opacity: 0.5;
+    -mfx-color: #ff5f57;
+    -fx-opacity: 0.8;
 }
 
 .rootPane .close-icon:hover {
@@ -33,8 +30,8 @@
 }
 
 .rootPane .minimize-icon {
-    -mfx-color: #ffbf37;
-    -fx-opacity: 0.5;
+    -mfx-color: #febc2e;
+    -fx-opacity: 0.8;
 }
 
 .rootPane .minimize-icon:hover {
@@ -42,8 +39,8 @@
 }
 
 .rootPane .maximize-icon {
-    -mfx-color: -mfx-purple;
-    -fx-opacity: 0.5;
+    -mfx-color: #28c840;
+    -fx-opacity: 0.8;
 }
 
 .rootPane .maximize-icon:hover {
@@ -51,7 +48,7 @@
 }
 
 .rootPane .setting-icon {
-    -mfx-color: -mfx-onyx;
+    -mfx-color: -theme-text-primary;
     -fx-opacity: 0.5;
 }
 
@@ -59,54 +56,90 @@
     -fx-opacity: 1.0;
 }
 
-/*.rootPane .maximize-icon:always-on-top {
-	-fx-opacity: 1.0;
-}*/
 
 /**************************************************
- * Sidebar
+ * Sidebar 左侧视图
 **************************************************/
 .rootPane .sidebar {
-    /*-fx-background-color: -mfx-purple;*/
-    -fx-background-color: #079B8C;
-    -fx-background-insets: -1 -5 -1 -1;
-    -fx-background-radius: 0 20 20 0;
+    -fx-background-color: -theme-sidebar-bg;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent -theme-divider transparent transparent;
+    -fx-border-width: 0 1 0 0;
 }
 
 .rootPane .sidebar .header {
     -fx-font-family: 'Visby Round CF Heavy';
     -fx-font-size: 24;
-    -fx-text-fill: white;
+    -fx-text-fill: -theme-sidebar-text;
 }
 
 .rootPane .sidebar .header .mfx-font-icon {
-    -mfx-color: white;
+    -mfx-color: -theme-sidebar-icon;
 }
 
 .rootPane .sidebar .mfx-scroll-pane {
     -fx-background-color: transparent;
+}
 
-    -track-color: rgba(255, 255, 255, 0.3);
-    -thumb-color: white;
-    -thumb-hover-color: white;
+.rootPane .sidebar .mfx-scroll-pane .viewport,
+.rootPane .sidebar .mfx-scroll-pane .content {
+    -fx-background-color: transparent;
+}
+
+.rootPane .sidebar .mfx-scroll-pane .thumb {
+    -fx-background-color: -theme-text-disabled;
+}
+
+.rootPane .sidebar .mfx-scroll-pane .thumb:hover {
+    -fx-background-color: -theme-text-secondary;
+}
+
+.rootPane .sidebar .mfx-scroll-pane .track {
+    -fx-background-color: transparent;
 }
 
 .rootPane .sidebar .menu-label {
     -fx-font-family: 'Visby Round CF Bold';
     -fx-font-size: 14;
-    -fx-text-fill: white;
+    -fx-text-fill: -theme-sidebar-text;
 }
 
+/* navbar VBox 本身必须透明 */
+.rootPane .sidebar .navbar {
+    -fx-background-color: transparent;
+}
+
+/* Sidebar Styles - Full Transparency Chain */
 .rootPane .sidebar .navbar .mfx-rectangle-toggle-node {
     -fx-background-color: transparent;
-    -fx-background-radius: 0;
+    -fx-background-radius: 7;
     -fx-border-color: transparent;
     -fx-border-radius: 0;
-    -fx-pref-height: 40;
+    -fx-pref-height: 36;
 
     -fx-font-family: 'Visby Round CF Demi Bold';
     -fx-font-size: 13;
-    -fx-text-fill: white;
+    -fx-text-fill: -theme-sidebar-text;
+}
+
+/* 确保 ToggleNode 内部所有子节点都是透明的 */
+.rootPane .sidebar .navbar .mfx-rectangle-toggle-node>* {
+    -fx-background-color: transparent;
+}
+
+.rootPane .sidebar .navbar .mfx-rectangle-toggle-node .label-container {
+    -fx-background-color: transparent;
+}
+
+.rootPane .sidebar .navbar .mfx-rectangle-toggle-node .box {
+    -fx-background-color: transparent;
+}
+
+/* 覆盖全局 MFXTextField 样式，确保 Sidebar 内部保持透明 */
+.rootPane .sidebar .mfx-text-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }
 
 .rootPane .sidebar .navbar .mfx-rectangle-toggle-node .mfx-ripple-generator {
@@ -114,20 +147,297 @@
 }
 
 .rootPane .sidebar .navbar .mfx-rectangle-toggle-node .mfx-icon-wrapper .mfx-font-icon {
-    -mfx-color: white;
+    -mfx-color: -theme-sidebar-icon;
 }
 
 .rootPane .sidebar .navbar .mfx-rectangle-toggle-node:selected {
-    -fx-background-color: white;
-    -fx-background-radius: 5;
-    -fx-text-fill: #601cbe;
+    -fx-background-color: -theme-sidebar-selected-bg;
+    -fx-background-radius: 7;
+    -fx-border-color: transparent transparent transparent -theme-accent;
+    -fx-border-width: 0 0 0 3;
+    -fx-border-radius: 7;
+    -fx-text-fill: -theme-sidebar-selected-text;
 }
 
 .rootPane .sidebar .navbar .mfx-rectangle-toggle-node:selected .selection-rectangle {
     -fx-stroke: transparent;
-    -fx-fill: #601cbe;
+    -fx-fill: -theme-sidebar-selected-text;
 }
 
 .rootPane .sidebar .navbar .mfx-rectangle-toggle-node:selected .mfx-icon-wrapper .mfx-font-icon {
-    -mfx-color: #601cbe;
+    -mfx-color: -theme-sidebar-selected-icon;
+}
+
+/* 全局 Label 文字颜色 - 排除 Sidebar */
+.rootPane .label {
+    -fx-text-fill: -theme-text-primary;
+}
+
+/* 覆盖 Sidebar 中的 Label 使用 Sidebar 专用颜色 */
+.rootPane .sidebar .label {
+    -fx-text-fill: -theme-sidebar-text;
+}
+
+
+/* MFXTextField 主题适配 - 全局生效（Sidebar 有使用不知名的 MFXTextField，所以不能全局） */
+.rootPane .mfx-text-field {
+    -fx-background-color: -theme-bg-secondary;
+    -fx-text-fill: -theme-text-primary;
+    -fx-prompt-text-fill: -theme-text-secondary;
+    -mfx-main: -theme-accent;
+}
+
+.rootPane .mfx-text-field:focused {
+    -fx-background-color: -theme-bg-primary;
+    -fx-border-color: -theme-accent;
+    -fx-border-width: 0 0 2 0;
+}
+
+.rootPane .mfx-text-field .floating-text {
+    -fx-text-fill: -theme-text-secondary;
+}
+
+.rootPane .mfx-text-field:focused .floating-text {
+    -fx-text-fill: -theme-accent;
+}
+
+/* 通用 TextArea 主题适配 */
+.rootPane .text-area {
+    -fx-control-inner-background: -theme-bg-primary;
+    -fx-background-color: -theme-bg-primary;
+    -fx-text-fill: -theme-text-primary;
+    -fx-prompt-text-fill: -theme-text-secondary;
+    -fx-border-color: transparent;
+}
+
+.rootPane .text-area .content {
+    -fx-background-color: -theme-bg-primary;
+}
+
+.rootPane .text-area .scroll-pane {
+    -fx-background-color: -theme-bg-primary;
+}
+
+.rootPane .text-area .scroll-pane .viewport {
+    -fx-background-color: -theme-bg-primary;
+}
+
+/* MFX 通用提示标签 */
+.rootPane .mfx-text-field .floating-text {
+    -fx-background-color: transparent;
+    -fx-text-fill: -theme-text-secondary;
+}
+
+.rootPane .mfx-combo-box .floating-text {
+    -fx-background-color: -theme-bg-primary;
+    -fx-text-fill: -theme-text-secondary;
+}
+
+.rootPane .setting-pane-container {
+    -fx-background-color: -theme-bg-secondary;
+    -fx-border-color: -theme-border;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-effect: -theme-shadow-sm;
+}
+
+/* 主页仪表盘 */
+.rootPane .home-root,
+.rootPane .home-scroll,
+.rootPane .home-scroll > .viewport,
+.rootPane .home-dashboard {
+    -fx-background-color: transparent;
+}
+
+.rootPane .home-scroll > .corner,
+.rootPane .home-scroll > .scroll-bar > .track {
+    -fx-background-color: transparent;
+}
+
+.rootPane .home-dashboard {
+    -fx-fill-width: true;
+}
+
+.rootPane .home-hero {
+    -fx-padding: 24px 28px;
+    -fx-background-color: -theme-bg-secondary;
+    -fx-background-radius: 14px;
+    -fx-border-color: -theme-border;
+    -fx-border-radius: 14px;
+    -fx-effect: -theme-shadow-sm;
+}
+
+.rootPane .home-eyebrow {
+    -fx-padding: 0;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -theme-accent;
+}
+
+.rootPane .home-title {
+    -fx-padding: 0;
+    -fx-font-size: 27px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -theme-text-primary;
+}
+
+.rootPane .home-description {
+    -fx-padding: 0;
+    -fx-font-size: 14px;
+    -fx-line-spacing: 3px;
+    -fx-text-fill: -theme-text-secondary;
+}
+
+.rootPane .home-version {
+    -fx-padding: 5px 10px;
+    -fx-background-color: -theme-sidebar-selected-bg;
+    -fx-background-radius: 999px;
+    -fx-font-size: 12px;
+    -fx-text-fill: -theme-accent;
+}
+
+.rootPane .home-time {
+    -fx-padding: 0;
+    -fx-font-size: 13px;
+    -fx-text-fill: -theme-text-secondary;
+}
+
+.rootPane .home-primary-button {
+    -fx-padding: 9px 16px;
+    -fx-background-color: -theme-accent;
+    -fx-background-radius: 8px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.rootPane .home-card {
+    -fx-padding: 20px 22px;
+    -fx-background-color: -theme-bg-secondary;
+    -fx-background-radius: 12px;
+    -fx-border-color: -theme-border;
+    -fx-border-radius: 12px;
+    -fx-effect: -theme-shadow-sm;
+}
+
+.rootPane .home-card-title {
+    -fx-padding: 0;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -theme-text-primary;
+}
+
+.rootPane .home-card-subtitle {
+    -fx-padding: 0;
+    -fx-font-size: 13px;
+    -fx-text-fill: -theme-text-secondary;
+}
+
+.rootPane .home-tech-chip {
+    -fx-padding: 7px 11px;
+    -fx-background-color: -theme-sidebar-selected-bg;
+    -fx-background-radius: 7px;
+    -fx-font-size: 12px;
+    -fx-text-fill: -theme-accent;
+}
+
+.rootPane .home-guide-row {
+    -fx-padding: 8px 10px;
+    -fx-background-color: -theme-bg-primary;
+    -fx-background-radius: 7px;
+    -fx-font-size: 13px;
+    -fx-text-fill: -theme-text-primary;
+}
+
+.rootPane .home-contact-row {
+    -fx-padding: 8px 10px;
+    -fx-background-color: -theme-bg-primary;
+    -fx-background-radius: 7px;
+}
+
+.rootPane .home-contact-key {
+    -fx-padding: 0;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -theme-accent;
+}
+
+.rootPane .opencgl-vbox {
+    -fx-pref-height: 100;
+    -fx-pref-width: 200;
+    -fx-min-height: 100;
+    -fx-min-width: 200;
+    -fx-padding: 30px;
+    -fx-background-insets: 0;
+    -fx-background-color: -theme-bg-secondary;
+    -fx-border-color: -theme-border;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-effect: -theme-shadow-sm;
+}
+
+.rootPane .opencgl-vbox:pressed {
+    -fx-background-color: -theme-sidebar-selected-bg;
+}
+
+/* 插件市场：主题色必须来自 Scene 样式表，避免节点尚未挂入 Scene 时解析内联 looked-up color。 */
+.rootPane .market-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -theme-text-primary;
+}
+
+.rootPane .market-toolbar-button {
+    -fx-background-color: -theme-bg-secondary;
+    -fx-text-fill: -theme-text-primary;
+}
+
+.rootPane .market-toolbar-icon {
+    -mfx-color: -theme-text-primary;
+}
+
+.rootPane .market-surface {
+    -fx-background-color: -theme-bg-primary;
+}
+
+.rootPane .market-plugin-icon {
+    -mfx-color: -theme-accent;
+}
+
+.rootPane .market-plugin-name {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -theme-text-primary;
+}
+
+.rootPane .market-plugin-version {
+    -fx-font-size: 12px;
+    -fx-text-fill: -theme-text-secondary;
+}
+
+.rootPane .market-action-button {
+    -fx-font-size: 12px;
+    -fx-pref-width: 100px;
+    -fx-font-weight: bold;
+}
+
+.rootPane .market-action-upgrade {
+    -fx-background-color: #FF9800;
+    -fx-text-fill: white;
+    -fx-pref-width: 120px;
+}
+
+.rootPane .market-action-installed {
+    -fx-background-color: -theme-bg-secondary;
+    -fx-text-fill: -theme-text-secondary;
+    -fx-opacity: 0.7;
+}
+
+.rootPane .market-action-install {
+    -fx-background-color: -theme-accent;
+    -fx-text-fill: white;
+}
+
+.rootPane .market-action-error {
+    -fx-background-color: #F44336;
+    -fx-text-fill: white;
 }

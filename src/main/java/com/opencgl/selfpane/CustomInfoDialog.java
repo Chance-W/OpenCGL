@@ -2,6 +2,7 @@ package com.opencgl.selfpane;
 
 import java.util.Objects;
 
+import com.opencgl.base.theme.ThemeManager;
 import com.opencgl.i18n.I18N;
 import io.github.palexdev.materialfx.controls.MFXButton;
 import io.github.palexdev.materialfx.enums.ButtonType;
@@ -23,7 +24,7 @@ import javafx.stage.Window;
  * @author Chance.W
  * @version 1.0
  * @CreateDate 2023/06/13 22:56
- * @since v9.0
+ * @since v2.0
  */
 @SuppressWarnings("unused")
 public class CustomInfoDialog extends Dialog<Void> {
@@ -40,8 +41,24 @@ public class CustomInfoDialog extends Dialog<Void> {
     private void initCustomDialog() {
         initStyle(StageStyle.UNDECORATED);
         initModality(Modality.APPLICATION_MODAL);
-        getDialogPane().getStylesheets().setAll(Objects.requireNonNull(this.getClass().getResource("/com/opencgl/css/opencgl-dialog.css")).toExternalForm());
-        getDialogPane().getStyleClass().add(0, "opencgl-dialog");
+        getDialogPane().getStyleClass().addFirst("root");
+        getDialogPane().getStyleClass().add("opencgl-dialog");
+
+        // 注册到 ThemeManager 以支持主题切换
+        this.setOnShown(event -> {
+            Scene scene = getDialogPane().getScene();
+            if (scene != null) {
+                ThemeManager.getInstance().registerScene(scene);
+            }
+        });
+
+        // 当对话框关闭时注销
+        this.setOnHidden(event -> {
+            Scene scene = getDialogPane().getScene();
+            if (scene != null) {
+                ThemeManager.getInstance().unregisterScene(scene);
+            }
+        });
         VBox alertVBox = new VBox();
         alertVBox.setMinWidth(400.0);
         alertVBox.setMinHeight(150.0);
@@ -64,18 +81,24 @@ public class CustomInfoDialog extends Dialog<Void> {
 
         // END VBox
         getDialogPane().setContent(alertVBox);
-        Window window = Stage.getWindows().get(0);
-        this.initOwner(window);
-        this.setOnShown(event -> Platform.runLater(() -> {
-            this.setX(window.getX() + (window.getWidth() - this.getDialogPane().getWidth()) / 2);
-            // 位置稍微高一点，使用者视觉效果可能会好一点
-            this.setY(window.getY() + (window.getHeight() - this.getDialogPane().getHeight() - 100) / 2);
-        }));
+
+        this.setOnShown(event -> {
+            Scene scene = getDialogPane().getScene();
+            if (scene != null) {
+                ThemeManager.getInstance().registerScene(scene);
+            }
+            // 居中定位到当前活跃屏幕
+            com.opencgl.util.DialogUtil.centerOnActiveWindow(this);
+        });
 
     }
 
     public void setLabelText(String value) {
         labelText.setText(value);
+    }
+
+    public void setCustomHeaderText(String value) {
+        labelHeader.setText(value);
     }
 
 }

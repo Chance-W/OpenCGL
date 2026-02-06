@@ -4,7 +4,9 @@ import java.util.Objects;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.opencgl.base.theme.ThemeManager;
 import com.opencgl.i18n.I18N;
+import com.opencgl.util.DialogUtil;
 import io.github.palexdev.materialfx.controls.MFXButton;
 import io.github.palexdev.materialfx.controls.MFXTextField;
 import io.github.palexdev.materialfx.enums.ButtonType;
@@ -14,6 +16,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -27,7 +30,7 @@ import javafx.stage.Window;
  * @author Chance.W
  * @version 1.0
  * @CreateDate 2023/06/13 22:56
- * @since v9.0
+ * @since v2.0
  */
 @SuppressWarnings("unused")
 public class CustomDialog extends Dialog<String> {
@@ -38,6 +41,8 @@ public class CustomDialog extends Dialog<String> {
 
     private MFXTextField textField;
 
+    private final Label labelHeader = new Label(I18N.getOrDefault("opencgl.main.dialog.labelHeader"));
+
     public CustomDialog() {
         super();
         initCustomDialog();
@@ -46,13 +51,26 @@ public class CustomDialog extends Dialog<String> {
     private void initCustomDialog() {
         initStyle(StageStyle.UNDECORATED);
         initModality(Modality.APPLICATION_MODAL);
-        getDialogPane().getStylesheets().setAll(Objects.requireNonNull(this.getClass().getResource("/com/opencgl/css/opencgl-dialog.css")).toExternalForm());
-        getDialogPane().getStyleClass().setAll("opencgl-dialog");
+        getDialogPane().getStyleClass().setAll("root", "opencgl-dialog");
 
+        // 注册到 ThemeManager 以支持主题切换
+        this.setOnShown(event -> {
+            Scene scene = getDialogPane().getScene();
+            if (scene != null) {
+                ThemeManager.getInstance().registerScene(scene);
+            }
+        });
 
-        Label label = new Label(I18N.getOrDefault("opencgl.main.dialog.labelHeader"));
+        // 当对话框关闭时注销
+        this.setOnHidden(event -> {
+            Scene scene = getDialogPane().getScene();
+            if (scene != null) {
+                ThemeManager.getInstance().unregisterScene(scene);
+            }
+        });
+
+        Label label = labelHeader;
         HBox headerHBox = new HBox(label);
-
 
         textField = new MFXTextField();
         textField.setFloatMode(FloatMode.ABOVE);
@@ -98,13 +116,15 @@ public class CustomDialog extends Dialog<String> {
         // END VBox
         getDialogPane().setContent(vBox);
 
-        Window window = Stage.getWindows().get(0);
-        this.initOwner(window);
-        this.setOnShown(event -> Platform.runLater(() -> {
-            this.setX(window.getX() + (window.getWidth() - this.getDialogPane().getWidth()) / 2);
-            // 位置稍微高一点，使用者视觉效果可能会好一点
-            this.setY(window.getY() + (window.getHeight() - this.getDialogPane().getHeight() - 100) / 2);
-        }));
+        this.setOnShown(event -> {
+            // 注册主题
+            Scene scene = getDialogPane().getScene();
+            if (scene != null) {
+                ThemeManager.getInstance().registerScene(scene);
+            }
+            // 居中定位到当前活跃屏幕
+            DialogUtil.centerOnActiveWindow(this);
+        });
     }
 
     public void setConfirmOnAction(EventHandler<ActionEvent> value) {
@@ -117,6 +137,10 @@ public class CustomDialog extends Dialog<String> {
 
     public void setTextField(String value) {
         textField.setText(value);
+    }
+
+    public void setCustomHeaderText(String value) {
+        labelHeader.setText(value);
     }
 
 }

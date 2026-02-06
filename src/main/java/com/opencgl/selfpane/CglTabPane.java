@@ -9,7 +9,7 @@ import javafx.scene.control.TabPane;
  * @author Chance.W
  * @version 1.0
  * @CreateDate 2023/06/04 12:54
- * @since v9.0
+ * @since v2.0
  */
 public class CglTabPane extends TabPane {
 

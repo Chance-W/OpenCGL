@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import io.github.palexdev.materialfx.controls.MFXButton?>
+<?import io.github.palexdev.materialfx.controls.MFXScrollPane?>
+<?import io.github.palexdev.materialfx.controls.MFXTextField?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="rootContainer" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.opencgl.controller.CustomPluginsPaneController">
+    <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 10 15 10 15;">
+        <MFXTextField fx:id="searchField" floatMode="BORDER" prefWidth="250" HBox.hgrow="NEVER"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <MFXButton fx:id="addBtn"/>
+        <MFXButton fx:id="multiSelectBtn"/>
+        <MFXButton fx:id="deleteBtn"/>
+        <MFXButton fx:id="helpBtn"/>
+    </HBox>
+    <MFXScrollPane fx:id="scrollPane" fitToWidth="true" VBox.vgrow="ALWAYS">
+        <FlowPane fx:id="flowPane" hgap="12.0" vgap="12.0">
+            <padding>
+                <Insets bottom="12" left="12" right="12" top="12"/>
+            </padding>
+        </FlowPane>
+    </MFXScrollPane>
+</VBox>

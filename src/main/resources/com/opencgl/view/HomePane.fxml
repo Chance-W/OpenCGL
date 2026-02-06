@@ -1,89 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import io.github.palexdev.materialfx.controls.MFXButton?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.layout.VBox?>
-<BorderPane fx:id="homeRootPane" stylesheets="@../css/HomePane.css" prefHeight="400.0" prefWidth="600.0"
-            xmlns="http://javafx.com/javafx/10.0.2-internal"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.opencgl.controller.HomePaneController">
-    <top>
-        <HBox alignment="CENTER_RIGHT" nodeOrientation="LEFT_TO_RIGHT" BorderPane.alignment="CENTER">
-            <Label fx:id="timeLabel" style="-fx-font-size: 20"/>
-            <BorderPane.margin>
-                <Insets right="20.0" top="10.0"/>
-            </BorderPane.margin>
-        </HBox>
-    </top>
+<BorderPane fx:id="homeRootPane" styleClass="home-root"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.opencgl.controller.HomePaneController">
     <center>
-        <VBox StackPane.alignment="TOP_CENTER" spacing="30">
-            <HBox spacing="40" style="-fx-padding: 0 0 0 50;">
-                <MFXButton buttonType="RAISED" onAction="#jumpHomePage" prefHeight="30" prefWidth="100"
-                           text="个人主页"/>
-            </HBox>
-            <HBox spacing="40" style="-fx-padding: 0 0 0 50;">
-                <GridPane alignment="CENTER" hgap="20.0" styleClass="grid-pane">
-                    <padding>
-                        <Insets bottom="20.0" right="30.0" top="20.0"/>
-                    </padding>
-                    <StackPane HBox.hgrow="ALWAYS" minHeight="150.0" minWidth="300.0" styleClass="grid-background"
-                               GridPane.columnSpan="10"
-                               GridPane.rowSpan="2">
-                        <GridPane.margin>
-                            <Insets left="-15.0" top="-15.0" right="-15.0"/>
-                        </GridPane.margin>
-                        <opaqueInsets>
-                            <Insets/>
-                        </opaqueInsets>
-                    </StackPane>
-                    <Label alignment="TOP_LEFT" styleClass="header-label" text="OpenCGL管理工具"/>
-                    <TextArea fx:id="softwareIntroduce" GridPane.rowIndex="1" prefWidth="10000" GridPane.columnSpan="10"
-                              wrapText="true" editable="false" HBox.hgrow="ALWAYS"/>
-                </GridPane>
-            </HBox>
-            <HBox spacing="40" style="-fx-padding: 0 0 0 50;">
-                <GridPane alignment="CENTER" hgap="20.0" styleClass="grid-pane">
-                    <padding>
-                        <Insets bottom="20.0" right="30.0" top="20.0"/>
-                    </padding>
-                    <StackPane HBox.hgrow="ALWAYS" minHeight="150.0" minWidth="200.0" styleClass="grid-background"
-                               GridPane.columnSpan="10"
-                               GridPane.rowSpan="3">
-                        <GridPane.margin>
-                            <Insets left="-15.0" top="-15.0" right="-15.0"/>
-                        </GridPane.margin>
-                        <opaqueInsets>
-                            <Insets/>
-                        </opaqueInsets>
-                    </StackPane>
-                    <Label alignment="TOP_LEFT" styleClass="header-label" text="技术框架"/>
-                    <TextArea fx:id="softwareFrameworkIntroduce" wrapText="true" editable="false" GridPane.rowIndex="2"
-                              HBox.hgrow="ALWAYS"/>
-                </GridPane>
-                <GridPane alignment="CENTER" hgap="20.0" styleClass="grid-pane">
-                    <padding>
-                        <Insets bottom="20.0" right="30.0" top="20.0"/>
-                    </padding>
-                    <StackPane HBox.hgrow="ALWAYS" minHeight="150.0" minWidth="200.0" styleClass="grid-background"
-                               GridPane.columnSpan="5"
-                               GridPane.rowSpan="4">
-                        <GridPane.margin>
-                            <Insets left="-15.0" top="-15.0" right="-15.0"/>
-                        </GridPane.margin>
-                        <opaqueInsets>
-                            <Insets/>
-                        </opaqueInsets>
-                    </StackPane>
-                    <Label alignment="TOP_LEFT" styleClass="header-label" text="工具说明"/>
-                    <TextArea fx:id="softwareSuggestion" wrapText="true" editable="false" GridPane.rowIndex="3"
-                              GridPane.columnSpan="5" HBox.hgrow="ALWAYS"/>
-                </GridPane>
-            </HBox>
-        </VBox>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="home-scroll">
+            <content>
+                <VBox spacing="16.0" styleClass="home-dashboard">
+                    <padding><Insets bottom="24.0" left="24.0" right="24.0" top="20.0"/></padding>
+                    <HBox alignment="CENTER_LEFT" spacing="24.0" styleClass="home-hero">
+                        <VBox spacing="7.0" HBox.hgrow="ALWAYS">
+                            <Label fx:id="welcomeLabel" styleClass="home-eyebrow" text="WELCOME"/>
+                            <Label fx:id="mainTitleLabel" styleClass="home-title" text="OpenCGL"/>
+                            <Label fx:id="softwareIntroduce" maxWidth="760.0" styleClass="home-description" text="OpenCGL" wrapText="true"/>
+                            <Label fx:id="versionLabel" styleClass="home-version" text="v0.0.0"/>
+                        </VBox>
+                        <VBox alignment="CENTER_RIGHT" spacing="12.0">
+                            <Label fx:id="timeLabel" styleClass="home-time"/>
+                            <MFXButton fx:id="jumpHomeBtn" buttonType="RAISED" onAction="#jumpHomePage"
+                                       styleClass="home-primary-button" text="访问项目主页"/>
+                        </VBox>
+                    </HBox>
+                    <GridPane hgap="16.0" vgap="16.0" styleClass="home-card-grid">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="50.0" hgrow="ALWAYS"/>
+                            <ColumnConstraints percentWidth="50.0" hgrow="ALWAYS"/>
+                        </columnConstraints>
+                        <VBox GridPane.columnIndex="0" spacing="14.0" styleClass="home-card" GridPane.hgrow="ALWAYS">
+                            <Label fx:id="frameworkTitleLabel" styleClass="home-card-title" text="技术架构"/>
+                            <Label fx:id="frameworkDescriptionLabel" styleClass="home-card-subtitle"
+                                   text="构建桌面端插件生态的核心技术" wrapText="true"/>
+                            <FlowPane hgap="8.0" vgap="8.0">
+                                <Label styleClass="home-tech-chip" text="Zulu JDK 21"/>
+                                <Label styleClass="home-tech-chip" text="JavaFX"/>
+                                <Label styleClass="home-tech-chip" text="MaterialFX"/>
+                                <Label styleClass="home-tech-chip" text="FontAwesome"/>
+                                <Label styleClass="home-tech-chip" text="Plugin SPI"/>
+                            </FlowPane>
+                            <Region VBox.vgrow="ALWAYS"/>
+                        </VBox>
+                        <VBox GridPane.columnIndex="1" spacing="12.0" styleClass="home-card" GridPane.hgrow="ALWAYS">
+                            <Label fx:id="guideTitleLabel" styleClass="home-card-title" text="使用指引"/>
+                            <Label fx:id="guideFirstLabel" styleClass="home-guide-row" text="01  从左侧分类选择需要的工具" wrapText="true"/>
+                            <Label fx:id="guideSecondLabel" styleClass="home-guide-row" text="02  在应用市场发现并安装插件" wrapText="true"/>
+                            <Label fx:id="guideThirdLabel" styleClass="home-guide-row" text="03  在设置中管理插件与主题" wrapText="true"/>
+                        </VBox>
+                    </GridPane>
+                    <VBox spacing="13.0" styleClass="home-card">
+                        <HBox alignment="CENTER_LEFT" spacing="12.0">
+                            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                <Label fx:id="suggestionTitleLabel" styleClass="home-card-title" text="项目与联系"/>
+                                <Label fx:id="contactDescriptionLabel" styleClass="home-card-subtitle"
+                                       text="欢迎交流工具和插件建议" wrapText="true"/>
+                            </VBox>
+                        </HBox>
+                        <FlowPane hgap="24.0" vgap="10.0">
+                            <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="home-contact-row">
+                                <Label styleClass="home-contact-key" text="Email"/>
+                                <Label text="chance.w@qq.com · chance_w@126.com"/>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="home-contact-row">
+                                <Label fx:id="wechatKeyLabel" styleClass="home-contact-key" text="微信"/>
+                                <Label text="Chance_W-"/>
+                            </HBox>
+                        </FlowPane>
+                    </VBox>
+                </VBox>
+            </content>
+        </ScrollPane>
     </center>
 </BorderPane>

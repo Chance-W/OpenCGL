@@ -1,3 +1,4 @@
+/*
 package com.opencgl.util;
 
 import java.util.Objects;
@@ -13,12 +14,14 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+*/
 /**
  * @author Chance.W
  * @version 1.0
  * @CreateDate 2023/06/16 13:55
- * @since v9.0
- */
+ * @since v2.0
+ *//*
+
 public class LoadingUtil {
 
     private static final StackPane stackPane = new StackPane();
@@ -58,9 +61,6 @@ public class LoadingUtil {
     }
 
     public static void remove(Pane root) {
-        /*    if (timeoutTask.isRunning()) {*/
-        //      timeoutTask.cancel();
-        // }
         timeoutTask.cancel();
         Platform.runLater(() -> {
             closeButton.setVisible(false);
@@ -81,3 +81,4 @@ public class LoadingUtil {
         return task;
     }
 }
+*/

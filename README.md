@@ -1,5 +1,9 @@
 # OpenCGL
 
+构建、四平台打包和 GitHub Release 操作见 [docs/BUILD.md](docs/BUILD.md)。
+
+插件 ID、API 版本和主程序兼容范围见 [docs/PLUGIN_API.md](docs/PLUGIN_API.md)。
+
 ## 目录
 
 1. **介绍**
@@ -86,7 +90,7 @@
 
 #### mac
 
-由于无法申请到苹果的开发者账号，所以当前仅支持通过手工部署的方式操作
+由于无法申请到苹果的开发者账号，所以当前仅支持通过手工部署的方式操作-已支持
 
 1.根据实际自行选择如下 jdk版本
 
@@ -123,6 +127,11 @@ alias opencgl='cd $OPENCGL_HOME;nohup ../Java/zulu21.30.15/bin/java -jar OpenCGL
 
 其它步骤参考 mac即可
 
+### 2.3 配置说明（首次使用）
+
+- **插件目录**：首次运行或未配置时，需在**设置**中选择插件包（JAR）的加载目录；将编译好的插件 JAR 放入该目录后，可通过「刷新插件」或重启应用加载。
+- **OpenCGL-Base 依赖**：主程序及部分插件依赖 [OpenCGL-Base](https://gitee.com/chance_w/open-cgl-base)。若从源码构建主程序或开发/运行依赖 Base 的插件，请先将 OpenCGL-Base 源码 clone 后执行 `mvn install` 安装到本地 Maven 仓库，再构建主工程或插件工程。
+
 ## 3. 快速开始
 
 ### 3.1 首次运行
@@ -154,6 +163,8 @@ alias opencgl='cd $OPENCGL_HOME;nohup ../Java/zulu21.30.15/bin/java -jar OpenCGL
 ### 4.1 高级功能一
 
 #### 4.1 插件式扩展
+
+- 刷新插件前建议先关闭已打开的该插件 Tab 页，再执行刷新。
 
 见[3.2.1]
 插件开发手册见
@@ -201,5 +212,4 @@ https://gitee.com/chance_w/open-cgl-plugin/blob/main/README.md
 开源地址：https://gitee.com/xwintop/xJavaFxTool
 
 ## 8 其他
-C:\Software\zulu21.30.15-ca-jdk21.0.1-win_x64\bin\java.exe -Dmaven.multiModuleProjectDirectory=C:\Users\chancew\IdeaProjects\OpenCGL_New -Djansi.passthrough=true -Dmaven.home=C:\Software\apache-maven-3.6.3 -Dclassworlds.conf=C:\Software\apache-maven-3.6.3\bin\m2.conf "-Dmaven.ext.class.path=C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2023.3.2\plugins\maven\lib\maven-event-listener.jar" "-javaagent:C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2023.3.2\lib\idea_rt.jar=55148:C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2023.3.2\bin" -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 -classpath C:\Software\apache-maven-3.6.3\boot\plexus-classworlds-2.6.0.jar;C:\Software\apache-maven-3.6.3\boot\plexus-classworlds.license org.codehaus.classworlds.Launcher -Didea.version=2023.3.2 -s C:\Software\apache-maven-3.6.3\conf\settings-aliyun.xml package -P windows
 ---
