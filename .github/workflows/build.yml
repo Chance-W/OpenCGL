@@ -38,6 +38,11 @@ jobs:
         uses: actions/checkout@v7
         with:
           path: host
+      - name: Check out shared API and Base
+        uses: actions/checkout@v7
+        with:
+          repository: Chance-W/OpenCGL-Plugin
+          path: plugins
       - name: Set up build environment
         uses: ./host/.github/actions/setup-opencgl
         with:
@@ -45,6 +50,9 @@ jobs:
       - name: Install Linux packaging prerequisite
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y fakeroot
+      - name: Install OpenCGL API and Base dependencies
+        shell: bash
+        run: mvn -f plugins/pom.xml -pl PluginApiModule,OpenCGL-Base -am install -DskipTests
       - name: Build, test, and package
         run: python host/build/build.py package --output release/${{ matrix.label }}
       - name: Upload test diagnostics
