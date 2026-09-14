@@ -50,6 +50,10 @@ jobs:
       - name: Install Linux packaging prerequisite
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y fakeroot
+      - name: Install Windows packaging prerequisite
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: choco install wixtoolset --no-progress --yes
       - name: Install OpenCGL API and Base dependencies
         shell: bash
         run: mvn -f plugins/pom.xml -pl PluginApiModule,OpenCGL-Base -am install -DskipTests
