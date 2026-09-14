@@ -51,6 +51,10 @@ def current_java():
 
 
 def run_command(command, cwd):
+    # Windows 将 Maven 安装为 mvn.cmd，CreateProcess 不一定会按 PATHEXT
+    # 解析裸的 mvn；显式使用 mvn.cmd 保证跨平台调用一致。
+    if os.name == "nt" and command and str(command[0]).lower() == "mvn":
+        command = ["mvn.cmd", *command[1:]]
     display = " ".join(str(part) for part in command)
     print(f"[{cwd}] $ {display}", flush=True)
     subprocess.run([str(part) for part in command], cwd=cwd, check=True)
