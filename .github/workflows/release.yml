@@ -33,4 +33,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
-        run: gh release create "$RELEASE_TAG" release/*/* --verify-tag --generate-notes
+        run: |
+          # Tag 对应的 Release 可能已由上一次失败任务创建；此时复用并补传产物。
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" release/*/* --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$RELEASE_TAG" release/*/* --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes
+          fi
