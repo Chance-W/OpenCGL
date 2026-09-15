@@ -35,8 +35,30 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           # Tag 对应的 Release 可能已由上一次失败任务创建；此时复用并补传产物。
+          rm -rf release-assets
+          mkdir -p release-assets
+          for platform_dir in release/*/; do
+            platform="$(basename "$platform_dir")"
+            platform="${platform#OpenCGL-Tool-}"
+            for asset in "$platform_dir"*; do
+              [ -f "$asset" ] || continue
+              case "$(basename "$asset")" in
+                SHA256SUMS)
+                  destination="release-assets/SHA256SUMS-${platform}"
+                  ;;
+                build-manifest.json)
+                  destination="release-assets/build-manifest-${platform}.json"
+                  ;;
+                *)
+                  destination="release-assets/$(basename "$asset")"
+                  ;;
+              esac
+              cp "$asset" "$destination"
+            done
+          done
+          assets=(release-assets/*)
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" release/*/* --repo "$GITHUB_REPOSITORY" --clobber
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
           else
-            gh release create "$RELEASE_TAG" release/*/* --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes
+            gh release create "$RELEASE_TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes
           fi
