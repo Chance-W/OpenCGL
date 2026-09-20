@@ -137,10 +137,25 @@ def release_basename(version, label):
 def read_software_version(pom_path):
     root = ET.parse(pom_path).getroot()
     namespace = {"m": "http://maven.apache.org/POM/4.0.0"}
+    properties = {
+        child.tag.rsplit("}", 1)[-1]: (child.text or "").strip()
+        for child in root.findall("m:properties/*", namespaces=namespace)
+    }
     value = root.findtext("m:properties/m:software-version", namespaces=namespace)
     if not value:
         raise ValueError(f"software-version is missing from {pom_path}")
-    return value.strip()
+    value = value.strip()
+    for _ in range(8):
+        if not (value.startswith("${") and value.endswith("}")):
+            break
+        key = value[2:-1]
+        replacement = properties.get(key)
+        if not replacement:
+            raise ValueError(f"software-version references unknown property {key!r}")
+        value = replacement
+    if not value or value.startswith("${"):
+        raise ValueError(f"software-version is unresolved in {pom_path}")
+    return value
 
 
 def artifact_types(label):

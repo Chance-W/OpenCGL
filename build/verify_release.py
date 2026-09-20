@@ -23,6 +23,8 @@ def verify_release(root):
         for line in checksum_file.read_text(encoding="utf-8").splitlines():
             expected, name = line.split(maxsplit=1)
             artifact = checksum_file.parent / name.strip()
+            if not artifact.is_file():
+                raise RuntimeError(f"Missing artifact referenced by checksum: {artifact}")
             actual = hashlib.sha256(artifact.read_bytes()).hexdigest()
             if actual != expected:
                 raise RuntimeError(f"Checksum mismatch: {artifact}")

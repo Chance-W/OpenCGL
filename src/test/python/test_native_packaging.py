@@ -22,6 +22,16 @@ class NativePackagingTest(unittest.TestCase):
         build = load_build()
         self.assertEqual("2.2.3", build.read_software_version(ROOT / "pom.xml"))
 
+    def test_reads_version_from_global_opencgl_property(self):
+        build = load_build()
+        with tempfile.TemporaryDirectory() as tmp:
+            pom = Path(tmp) / "pom.xml"
+            pom.write_text("""<project xmlns=\"http://maven.apache.org/POM/4.0.0\">
+              <properties><opencgl.version>9.8.7</opencgl.version>
+                <software-version>${opencgl.version}</software-version></properties>
+            </project>""")
+            self.assertEqual("9.8.7", build.read_software_version(pom))
+
     def test_jpackage_command_contains_common_and_platform_options(self):
         build = load_build()
         command = build.jpackage_command(

@@ -37,6 +37,21 @@ class VerifyReleaseTest(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "Missing platform"):
                 verifier.verify_release(temp)
 
+    def test_rejects_checksum_entry_when_artifact_is_missing(self):
+        verifier = load_verifier()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            for platform in verifier.PLATFORMS:
+                folder = root / platform
+                folder.mkdir()
+                artifact = folder / f"OpenCGL-Tool-2.2.3-{platform}.zip"
+                artifact.write_bytes(platform.encode())
+                digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
+                name = artifact.name if platform != "macos-arm64" else "OpenCGL-Tool-2.2.3-macos-arm64.dmg"
+                (folder / "SHA256SUMS").write_text(f"{digest}  {name}\n")
+            with self.assertRaisesRegex(RuntimeError, "Missing artifact referenced by checksum"):
+                verifier.verify_release(root)
+
 
 if __name__ == "__main__":
     unittest.main()

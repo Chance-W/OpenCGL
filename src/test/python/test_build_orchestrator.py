@@ -60,7 +60,7 @@ class BuildOrchestratorTest(unittest.TestCase):
         build.run_verify(
             Path("/host"), Path("/plugins"),
             runner=lambda command, cwd: commands.append((command, cwd)),
-
+            extra_plugin_roots=(Path("/private-plugins"),),
         )
 
         self.assertEqual(Path("/plugins"), commands[0][1])

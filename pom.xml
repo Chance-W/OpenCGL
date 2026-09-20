@@ -13,7 +13,9 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <software-version>2.2.3</software-version>
+        <!-- Single source of truth for application release filenames and jpackage version. -->
+        <opencgl.version>2.2.3</opencgl.version>
+        <software-version>${opencgl.version}</software-version>
         <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
         <build.timestamp>${maven.build.timestamp}</build.timestamp>
         <junit.version>5.10.2</junit.version>
