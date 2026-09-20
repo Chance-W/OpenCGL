@@ -10,6 +10,11 @@ SETUP = ROOT / ".github/actions/setup-opencgl/action.yml"
 
 class WorkflowContractTest(unittest.TestCase):
 
+    def test_runtime_keeps_jgss_for_dynamic_plugins(self):
+        build = (ROOT / "build/build.py").read_text(encoding="utf-8")
+        self.assertIn('"java.security.jgss"', build)
+        self.assertIn('"jdk.security.jgss"', build)
+
     def test_build_matrix_and_toolchain_contract(self):
         workflow = BUILD.read_text(encoding="utf-8")
         setup = SETUP.read_text(encoding="utf-8")

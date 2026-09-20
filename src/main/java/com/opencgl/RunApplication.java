@@ -3,8 +3,10 @@ package com.opencgl;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -54,8 +56,16 @@ public class RunApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        Image iconImage = new Image(String.valueOf(this.getClass().getClassLoader().getResource("com/opencgl/icon/logo_alt.png")), 64, 64, true, true);
-        primaryStage.getIcons().add(iconImage);
+        // macOS 的 Dock 图标由 .app/Contents/Resources 中的 ICNS 管理。
+        // 启动后再设置 JavaFX Stage 图标会用普通 PNG 覆盖原生 Dock 图标。
+        if (shouldSetStageIcon(System.getProperty("os.name", ""))) {
+            URL iconUrl = this.getClass().getClassLoader().getResource("com/opencgl/icon/logo_alt.png");
+            if (iconUrl != null) {
+                primaryStage.getIcons().add(new Image(iconUrl.toExternalForm(), 64, 64, true, true));
+            } else {
+                logger.warn("Application stage icon resource not found");
+            }
+        }
         CSSFX.start();
         ThemeManager.getInstance().init();
 
@@ -100,10 +110,14 @@ public class RunApplication extends Application {
                 FXMLLoader loader = new FXMLLoader(RunApplication.class.getClassLoader().getResource("com/opencgl/view/Main.fxml"));
                 loader.setControllerFactory(c -> new NewMainController(primaryStage));
                 Parent root = loader.load();
-                logger.info("FXML加载完成，准备显示主界面...");
+                NewMainController controller = loader.getController();
+                logger.info("主框架 FXML 加载完成，等待主页与插件导航初始化...");
 
-                Platform.runLater(() -> {
+                controller.initialContentReady().whenComplete((ignored, initializationFailure) -> Platform.runLater(() -> {
                     try {
+                        if (initializationFailure != null) {
+                            logger.warn("主页或插件导航初始化未完全成功，仍显示主界面", initializationFailure);
+                        }
                         Scene scene = new Scene(root);
                         scene.setFill(Color.TRANSPARENT);
 
@@ -135,7 +149,7 @@ public class RunApplication extends Application {
                         logger.error("显示主界面时发生错误", e);
                         showFatalErrorThenExit(primaryStage, "opencgl.startup.fatal.display", e.getMessage());
                     }
-                });
+                }));
             }
             catch (IOException e) {
                 logger.error("Failed to load main FXML", e);
@@ -147,6 +161,10 @@ public class RunApplication extends Application {
             Platform.runLater(() -> showFatalErrorThenExit(primaryStage, "opencgl.startup.fatal.init", msg));
             return null;
         });
+    }
+
+    static boolean shouldSetStageIcon(String osName) {
+        return osName == null || !osName.toLowerCase(Locale.ROOT).contains("mac");
     }
 
     /**

@@ -172,6 +172,17 @@ JAVA_OPTIONS = (
     "-Dapp.env=production",
 )
 
+# JCSMP (including its optional authentication support) references the
+# standard GSS/JGSS API even when a connection uses BASIC authentication.
+# The host runtime is a jlink image, so jdeps cannot discover classes that are
+# loaded reflectively by an externally downloaded plugin.  Keep these modules
+# explicit to prevent NoClassDefFoundError: org/ietf/jgss/GSSException in
+# packaged installations.
+REQUIRED_RUNTIME_MODULES = {
+    "java.security.jgss",
+    "jdk.security.jgss",
+}
+
 
 def jpackage_command(java_home, input_dir, runtime, output, version, label, package_type, icon):
     command = [
@@ -245,6 +256,7 @@ def build_runtime(java_home, staging, runtime):
     )
     modules = {item.strip() for item in result.stdout.strip().split(",") if item.strip()}
     modules.update({"java.desktop", "jdk.charsets", "jdk.compiler", "jdk.crypto.ec", "jdk.unsupported"})
+    modules.update(REQUIRED_RUNTIME_MODULES)
     if runtime.exists():
         shutil.rmtree(runtime)
     run_command(

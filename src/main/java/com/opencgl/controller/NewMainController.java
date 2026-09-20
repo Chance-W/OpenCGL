@@ -37,6 +37,7 @@ import com.opencgl.selfpane.CglTabPane;
 import com.opencgl.selfpane.OpenCGLVbox;
 import com.opencgl.selfpane.SettingPane;
 import com.opencgl.util.DialogUtil;
+import com.opencgl.util.AsyncUiPipeline;
 import com.opencgl.util.ShutdownCoordinator;
 
 import com.opencgl.util.PluginParserHelper;
@@ -69,8 +70,6 @@ import io.github.palexdev.materialfx.utils.ToggleButtonsUtil;
 import io.github.palexdev.materialfx.utils.others.loader.MFXLoader;
 import io.github.palexdev.materialfx.utils.others.loader.MFXLoaderBean;
 import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
@@ -242,6 +241,7 @@ public class NewMainController implements Initializable {
 
     private final Tooltip maxTip = new Tooltip();
     private final LoadingMask loadingMask = new LoadingMask();
+    private final CompletableFuture<Void> initialContentReady = new CompletableFuture<>();
 
     private final java.util.List<FlowPane> pluginFlowPanes = new java.util.ArrayList<>();
 
@@ -554,10 +554,18 @@ public class NewMainController implements Initializable {
         });
 
         try {
-            initializeLoader();
+            initializeLoader().whenComplete((ignored, failure) -> {
+                if (failure == null) {
+                    initialContentReady.complete(null);
+                }
+                else {
+                    initialContentReady.completeExceptionally(failure);
+                }
+            });
         }
         catch (Exception e) {
             logger.error("", e);
+            initialContentReady.completeExceptionally(e);
         }
         ScrollUtils.addSmoothScrolling(scrollPane);
         // The only way to get a fucking smooth image in this shitty framework
@@ -678,9 +686,21 @@ public class NewMainController implements Initializable {
         Platform.runLater(() -> stage.setFullScreen(true));
     }
 
-    private void initializeLoader() {
+    public CompletableFuture<Void> initialContentReady() {
+        return initialContentReady;
+    }
+
+    private CompletableFuture<Void> initializeLoader() {
+        long loadStartedNanos = System.nanoTime();
+        boolean showReloadMask = rootPane.getScene() != null;
+        if (showReloadMask) {
+            loadingMask.show(rootPane);
+        }
+        CompletableFuture<Void> completion = new CompletableFuture<>();
+
         // 异步加载插件，避免阻塞 UI 线程
         CompletableFuture.supplyAsync(() -> {
+            long scanStartedNanos = System.nanoTime();
             try {
                 // 扫描插件 (IO密集型)
                 List<PluginUI> pluginUIList = pluginService.loadPlugins();
@@ -694,6 +714,8 @@ public class NewMainController implements Initializable {
                 Map<String, List<PluginUI>> menuMap = pluginService.groupPluginsByCategory(pluginUIList);
                 // 预加载图标 (可能涉及文件IO)
                 menuMap.keySet().forEach(CategoryIconManager::getIconForCategory);
+                logger.info("插件扫描完成：{} 个插件，耗时 {} ms", pluginUIList.size(),
+                    elapsedMillis(scanStartedNanos));
                 return new Object[]{pluginUIList, menuMap};
             }
             catch (Exception e) {
@@ -740,6 +762,7 @@ public class NewMainController implements Initializable {
                 });
 
                 loader.setOnLoadedAction(beans -> {
+                    long renderStartedNanos = System.nanoTime();
                     final Node[] customPluginsPaneRootRef = new Node[1];
                     List<ToggleButton> nodes = beans.stream()
                         .map(bean -> {
@@ -836,68 +859,70 @@ public class NewMainController implements Initializable {
                             return toggle;
                         }).collect(Collectors.toList());
                     navBar.getChildren().setAll(nodes);
-                });
-                loader.start();
 
-                // 初次构建完成卡片
-                Platform.runLater(() -> {
-                    pluginFlowPanes.forEach(flow -> flow.getChildren().clear());
-
-                    Map<String, Long> dbCounts = pluginClickStore.loadAll();
-                    // 为了保证主线程安全和单次实例构建
-                    for (FlowPane fp : pluginFlowPanes) {
-                        @SuppressWarnings("unchecked")
-                        List<PluginUI> targetList = (List<PluginUI>) fp.getUserData();
-                        if (targetList != null) {
-                            reorderPluginCards(fp, targetList, dbCounts);
-                        }
-                    }
-
-                    // 异步触发插件版更检测
+                    // 版本检查不阻塞首屏显示。
                     CompletableFuture.runAsync(() -> {
-                        @SuppressWarnings("unchecked")
                         List<com.opencgl.model.PluginUpdateInfo> updates = pluginUpdateService
-                            .checkForUpdates((List<PluginUI>) objects[0]);
+                            .checkForUpdates(pluginUIList);
                         if (!updates.isEmpty()) {
                             Platform.runLater(() -> applyUpdateBadges(updates));
                         }
                     });
 
-                    // 若有插件目录不可用或 JAR 加载失败，提示用户
-                    Map<String, String> failures = PluginParserHelper.getLastLoadFailures();
-                    if (!failures.isEmpty()) {
-                        boolean pathInvalid = failures.containsKey(PluginParserHelper.KEY_PLUGIN_PATH_INVALID);
-                        Map<String, String> jarFailures = failures.entrySet().stream()
-                            .filter(e -> !PluginParserHelper.KEY_PLUGIN_PATH_INVALID.equals(e.getKey()))
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-                        StringBuilder body = new StringBuilder();
-                        if (pathInvalid) {
-                            body.append(I18N.get("opencgl.plugin.path_invalid"));
-                        }
-                        if (!jarFailures.isEmpty()) {
-                            if (!body.isEmpty()) body.append("\n\n");
-                            body.append(I18N.get("opencgl.plugin.load.some_failed.detail",
-                                jarFailures.entrySet().stream()
-                                    .map(e -> e.getKey() + ": " + e.getValue())
-                                    .collect(Collectors.joining("\n"))));
-                        }
-                        DialogUtil.showCustomTextInfo(
-                            I18N.get("opencgl.plugin.load.some_failed"),
-                            body.toString());
-                    }
+                    showPluginLoadFailures();
+                    logger.info("主页与插件卡片构建完成：耗时 {} ms，总耗时 {} ms",
+                        elapsedMillis(renderStartedNanos), elapsedMillis(loadStartedNanos));
+                    completion.complete(null);
                 });
+                loader.start();
             }
             catch (Exception e) {
                 logger.error("Error initializing loader UI", e);
                 DialogUtil.showErrorInfo(I18N.getOrDefault("opencgl.startup.init.error", e.getMessage()));
+                completion.completeExceptionally(e);
             }
         }, Platform::runLater).exceptionally(ex -> {
             logger.error("Fatal error in plugin loader", ex);
             String msg = ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName();
             Platform.runLater(() -> DialogUtil.showErrorInfo(
                 I18N.get("opencgl.plugin.load.fatal") + "\n" + I18N.get("opencgl.plugin.load.fatal.message", msg)));
+            completion.completeExceptionally(ex);
             return null;
         });
+
+        completion.whenComplete((ignored, failure) -> {
+            if (showReloadMask) {
+                Platform.runLater(loadingMask::hide);
+            }
+        });
+        return completion;
+    }
+
+    private void showPluginLoadFailures() {
+        Map<String, String> failures = PluginParserHelper.getLastLoadFailures();
+        if (failures.isEmpty()) {
+            return;
+        }
+        boolean pathInvalid = failures.containsKey(PluginParserHelper.KEY_PLUGIN_PATH_INVALID);
+        Map<String, String> jarFailures = failures.entrySet().stream()
+            .filter(e -> !PluginParserHelper.KEY_PLUGIN_PATH_INVALID.equals(e.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        StringBuilder body = new StringBuilder();
+        if (pathInvalid) {
+            body.append(I18N.get("opencgl.plugin.path_invalid"));
+        }
+        if (!jarFailures.isEmpty()) {
+            if (!body.isEmpty()) body.append("\n\n");
+            body.append(I18N.get("opencgl.plugin.load.some_failed.detail",
+                jarFailures.entrySet().stream()
+                    .map(e -> e.getKey() + ": " + e.getValue())
+                    .collect(Collectors.joining("\n"))));
+        }
+        DialogUtil.showCustomTextInfo(I18N.get("opencgl.plugin.load.some_failed"), body.toString());
+    }
+
+    private static long elapsedMillis(long startedNanos) {
+        return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedNanos);
     }
 
     private void applyUpdateBadges(List<com.opencgl.model.PluginUpdateInfo> updates) {
@@ -1296,68 +1321,59 @@ public class NewMainController implements Initializable {
         // 点击时立即显示 LoadingMask（当前已在 FX 线程，用 showDirect 避免延迟一帧）
         loadingMask.showDirect(rootPane);
 
-        CompletableFuture.runAsync(() -> {
-            // 创建新的插件实例而不是重用
+        long loadStartedNanos = System.nanoTime();
+        AsyncUiPipeline.prepareThenRender(() -> {
             PluginUI pluginInstance = PluginParserHelper.createPluginInstance(pluginId);
             if (pluginInstance == null) {
-                Platform.runLater(() -> {
-                    loadingMask.hide();
-                    DialogUtil.showErrorInfo(I18N.get("opencgl.plugin.error.create_instance", pluginUI.name()));
-                });
-                return;
+                throw new IllegalStateException(I18N.get("opencgl.plugin.error.create_instance", pluginUI.name()));
             }
-
+            return pluginInstance;
+        }, pluginInstance -> {
+            long renderStartedNanos = System.nanoTime();
             Tab tab = new Tab();
-            tab.getProperties().put("pluginId", pluginId); // 存储稳定标识
-            tab.getProperties().put("pluginInstance", pluginInstance); // 存储对象以便关闭清理
+            tab.getProperties().put("pluginId", pluginId);
+            tab.getProperties().put("pluginInstance", pluginInstance);
             tab.setClosable(true);
             tab.textProperty().bind(javafx.beans.binding.Bindings.createStringBinding(
                 pluginInstance::name, I18N.localeProperty()));
+
             try {
                 ObservableList<Node> nodes = navBar.getChildren();
                 recordLastSelectedToggle(nodes);
                 removeSelectedToggleButton(nodes);
-                // 移除原有的 setOnClosed，目前统一由 initialize() 的 ListChangeListener 处理
-                // 先让出一两帧再执行 createView/setContent，否则 FX 线程被占满，LoadingMask 的 ProgressIndicator 无法转动
-                Platform.runLater(() -> {
-                    Timeline defer = new Timeline(new KeyFrame(Duration.millis(80), e -> {
-                        Node pluginUIView = PluginViewAdapter.adaptToFx(pluginInstance);
+                Node pluginUIView = PluginViewAdapter.adaptToFx(pluginInstance);
 
-                        if (pluginInstance instanceof ThemeAware) {
-                            ThemeManager.getInstance().registerThemeAware((ThemeAware) pluginInstance);
-                            ((ThemeAware) pluginInstance).onThemeChanged(
-                                ThemeManager.getInstance().getCurrentTheme().toThemeInfo());
-                        }
+                if (pluginInstance instanceof ThemeAware themeAware) {
+                    ThemeManager.getInstance().registerThemeAware(themeAware);
+                    themeAware.onThemeChanged(ThemeManager.getInstance().getCurrentTheme().toThemeInfo());
+                }
 
-                        tab.setContent(pluginUIView);
-                        componentJfxTabPane.getTabs().add(tab);
-                        componentJfxTabPane.getSelectionModel().select(tab);
-                        contentPane.getChildren().setAll(componentJfxTabPane);
-                        setupTabCloseGestures(tab);
-                        scheduleDeferredReorder();
-                        this.clearPluginMarketSearchField(vBox);
-                    }));
-                    defer.setCycleCount(1);
-                    defer.play();
-                });
-
+                tab.setContent(pluginUIView);
+                componentJfxTabPane.getTabs().add(tab);
+                componentJfxTabPane.getSelectionModel().select(tab);
+                contentPane.getChildren().setAll(componentJfxTabPane);
+                setupTabCloseGestures(tab);
+                scheduleDeferredReorder();
+                clearPluginMarketSearchField(vBox);
+                logger.info("插件界面加载完成：{}，UI 构建 {} ms，总耗时 {} ms", pluginInstance.name(),
+                    elapsedMillis(renderStartedNanos), elapsedMillis(loadStartedNanos));
             }
-            catch (Exception e) {
-                logger.error("", e);
-                Platform.runLater(() -> DialogUtil
-                    .showErrorInfo(I18N.getOrDefault("opencgl.mainWindows.loadPlugin.error") + e.getMessage()));
+            catch (RuntimeException e) {
+                PluginLifecycleManager.getInstance().disposeInstance(pluginInstance);
+                throw e;
             }
-            finally {
-                Platform.runLater(loadingMask::hide);
-            }
-        }).exceptionally(ex -> {
-            logger.error("插件加载异步任务失败", ex);
-            Platform.runLater(() -> {
-                loadingMask.hide(); // 确保加载动画移除
-                DialogUtil.showErrorInfo(I18N.get("opencgl.plugin.load.async_failed"));
-            });
-            return null;
-        });
+        }, CompletableFuture.delayedExecutor(0, TimeUnit.MILLISECONDS),
+            command -> CompletableFuture.delayedExecutor(80, TimeUnit.MILLISECONDS)
+                .execute(() -> Platform.runLater(command)))
+            .whenCompleteAsync((ignored, failure) -> {
+                loadingMask.hideDirect();
+                if (failure != null) {
+                    logger.error("插件加载失败：{}", pluginUI.name(), failure);
+                    String detail = failure.getCause() != null ? failure.getCause().getMessage() : failure.getMessage();
+                    DialogUtil.showErrorInfo(I18N.getOrDefault("opencgl.mainWindows.loadPlugin.error")
+                        + (detail == null ? I18N.get("opencgl.plugin.load.async_failed") : detail));
+                }
+            }, Platform::runLater);
     }
 
     private void clearPluginMarketSearchField(OpenCGLVbox card) {
