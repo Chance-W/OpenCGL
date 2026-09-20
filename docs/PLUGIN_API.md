@@ -22,7 +22,7 @@ public String apiVersion() {
 @Override
 public String minimumHostVersion() {
     // 包含边界；空字符串表示不限制。
-    return "2.2.2";
+    return "2.2.3";
 }
 
 @Override
@@ -40,7 +40,7 @@ public String maximumHostVersion() {
 4. 跳过原因写入现有插件加载失败详情，其他插件继续加载。
 5. `pluginId` 为空时回退到实现类全名，避免单个错误声明影响整个启动。
 
-版本比较会忽略主程序版本前面的 `v` 和 `-构建时间` 后缀，例如 `v2.2.2-20260907` 按 `2.2.2` 比较。
+版本比较会忽略主程序版本前面的 `v` 和 `-构建时间` 后缀，例如 `v2.2.3-20260920` 按 `2.2.3` 比较。
 
 ## 插件启停与诊断
 

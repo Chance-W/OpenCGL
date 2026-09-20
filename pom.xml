@@ -13,7 +13,7 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <software-version>2.2.2</software-version>
+        <software-version>2.2.3</software-version>
         <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
         <build.timestamp>${maven.build.timestamp}</build.timestamp>
         <junit.version>5.10.2</junit.version>

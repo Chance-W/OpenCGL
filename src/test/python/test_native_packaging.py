@@ -20,13 +20,13 @@ class NativePackagingTest(unittest.TestCase):
 
     def test_reads_public_software_version(self):
         build = load_build()
-        self.assertEqual("2.2.2", build.read_software_version(ROOT / "pom.xml"))
+        self.assertEqual("2.2.3", build.read_software_version(ROOT / "pom.xml"))
 
     def test_jpackage_command_contains_common_and_platform_options(self):
         build = load_build()
         command = build.jpackage_command(
             Path("/jdk"), Path("/input"), Path("/runtime"), Path("/out"),
-            "2.2.2", "windows-x64", "exe", Path("/icon.ico")
+            "2.2.3", "windows-x64", "exe", Path("/icon.ico")
         )
         self.assertEqual(Path("/jdk/bin/jpackage"), command[0])
         self.assertIn("--runtime-image", command)

@@ -12,23 +12,23 @@ class PluginCompatibilityTest {
 
     @Test
     void acceptsLegacyPluginDefaults() {
-        assertTrue(PluginCompatibility.check(plugin("1", "", ""), "v2.2.2-20260907").compatible());
+        assertTrue(PluginCompatibility.check(plugin("1", "", ""), "v2.2.3-20260907").compatible());
     }
 
     @Test
     void rejectsNewerApiAndOutOfRangeHostVersions() {
-        assertFalse(PluginCompatibility.check(plugin("2", "", ""), "2.2.2").compatible());
-        assertFalse(PluginCompatibility.check(plugin("1", "3.0.0", ""), "2.2.2").compatible());
-        assertFalse(PluginCompatibility.check(plugin("1", "", "2.0.0"), "2.2.2").compatible());
+        assertFalse(PluginCompatibility.check(plugin("2", "", ""), "2.2.3").compatible());
+        assertFalse(PluginCompatibility.check(plugin("1", "3.0.0", ""), "2.2.3").compatible());
+        assertFalse(PluginCompatibility.check(plugin("1", "", "2.0.0"), "2.2.3").compatible());
     }
 
     @Test
     void rejectsMalformedVersionDeclarationsWithActionableReasons() {
-        PluginCompatibility.Result badApi = PluginCompatibility.check(plugin("banana", "", ""), "2.2.2");
+        PluginCompatibility.Result badApi = PluginCompatibility.check(plugin("banana", "", ""), "2.2.3");
         assertFalse(badApi.compatible());
         assertEquals("invalid plugin API version: banana", badApi.reason());
 
-        PluginCompatibility.Result badMinimum = PluginCompatibility.check(plugin("1", "next", ""), "2.2.2");
+        PluginCompatibility.Result badMinimum = PluginCompatibility.check(plugin("1", "next", ""), "2.2.3");
         assertFalse(badMinimum.compatible());
         assertEquals("invalid minimum OpenCGL version: next", badMinimum.reason());
 

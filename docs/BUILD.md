@@ -80,10 +80,10 @@ python3 build/build.py package --output target/release
 
 平台产物：
 
-- Windows x64：`OpenCGL-Tool-2.2.2-windows-x64.exe` 与 `.zip`
-- macOS Intel：`OpenCGL-Tool-2.2.2-macos-x64.dmg` 与 `.tar.gz`
-- macOS ARM：`OpenCGL-Tool-2.2.2-macos-arm64.dmg` 与 `.tar.gz`
-- Ubuntu x64：`OpenCGL-Tool-2.2.2-linux-x64.deb` 与 `.tar.gz`
+- Windows x64：`OpenCGL-Tool-2.2.3-windows-x64.exe` 与 `.zip`
+- macOS Intel：`OpenCGL-Tool-2.2.3-macos-x64.dmg` 与 `.tar.gz`
+- macOS ARM：`OpenCGL-Tool-2.2.3-macos-arm64.dmg` 与 `.tar.gz`
+- Ubuntu x64：`OpenCGL-Tool-2.2.3-linux-x64.deb` 与 `.tar.gz`
 - 每个平台同时生成 `build-manifest.json` 和 `SHA256SUMS`
 
 Linux 打 `.deb` 前需要安装 `fakeroot`：

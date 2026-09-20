@@ -25,7 +25,7 @@ class VerifyReleaseTest(unittest.TestCase):
             for platform in verifier.PLATFORMS:
                 folder = root / platform
                 folder.mkdir()
-                artifact = folder / f"OpenCGL-Tool-2.2.2-{platform}.zip"
+                artifact = folder / f"OpenCGL-Tool-2.2.3-{platform}.zip"
                 artifact.write_bytes(platform.encode())
                 digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
                 (folder / "SHA256SUMS").write_text(f"{digest}  {artifact.name}\n")

@@ -27,7 +27,7 @@ class HomeThemeContrastTest {
         AtomicReference<Throwable> error = new AtomicReference<>();
         Platform.runLater(() -> {
             try {
-                Label version = new Label("当前版本 v2.2.2");
+                Label version = new Label("当前版本 v2.2.3");
                 version.getStyleClass().add("home-version");
                 Label chip = new Label("JavaFX");
                 chip.getStyleClass().add("home-tech-chip");

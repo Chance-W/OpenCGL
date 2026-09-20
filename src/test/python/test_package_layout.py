@@ -50,8 +50,8 @@ class PackageLayoutTest(unittest.TestCase):
     def test_release_name_contains_version_and_architecture(self):
         build = load_build()
         self.assertEqual(
-            "OpenCGL-Tool-2.2.2-macos-arm64",
-            build.release_basename("2.2.2", "macos-arm64"),
+            "OpenCGL-Tool-2.2.3-macos-arm64",
+            build.release_basename("2.2.3", "macos-arm64"),
         )
 
 if __name__ == "__main__":
