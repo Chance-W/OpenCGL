@@ -52,6 +52,20 @@ class VerifyReleaseTest(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "Missing artifact referenced by checksum"):
                 verifier.verify_release(root)
 
+    def test_accepts_artifact_nested_once_by_upload_download_layout(self):
+        verifier = load_verifier()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            for platform in verifier.PLATFORMS:
+                folder = root / platform
+                nested = folder / f"OpenCGL-Tool-{platform}"
+                nested.mkdir(parents=True)
+                artifact = nested / f"OpenCGL-Tool-2.2.3-{platform}.zip"
+                artifact.write_bytes(platform.encode())
+                digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
+                (folder / "SHA256SUMS").write_text(f"{digest}  {artifact.name}\n")
+            verifier.verify_release(root)
+
 
 if __name__ == "__main__":
     unittest.main()

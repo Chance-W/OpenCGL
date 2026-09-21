@@ -24,7 +24,13 @@ def verify_release(root):
             expected, name = line.split(maxsplit=1)
             artifact = checksum_file.parent / name.strip()
             if not artifact.is_file():
-                raise RuntimeError(f"Missing artifact referenced by checksum: {artifact}")
+                matches = list(root.rglob(name.strip()))
+                if len(matches) == 1:
+                    artifact = matches[0]
+                elif not matches:
+                    raise RuntimeError(f"Missing artifact referenced by checksum: {artifact}")
+                else:
+                    raise RuntimeError(f"Ambiguous artifact referenced by checksum: {name.strip()}")
             actual = hashlib.sha256(artifact.read_bytes()).hexdigest()
             if actual != expected:
                 raise RuntimeError(f"Checksum mismatch: {artifact}")

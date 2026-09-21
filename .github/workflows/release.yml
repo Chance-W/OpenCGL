@@ -40,8 +40,7 @@ jobs:
           for platform_dir in release/*/; do
             platform="$(basename "$platform_dir")"
             platform="${platform#OpenCGL-Tool-}"
-            for asset in "$platform_dir"*; do
-              [ -f "$asset" ] || continue
+            while IFS= read -r -d '' asset; do
               case "$(basename "$asset")" in
                 SHA256SUMS)
                   destination="release-assets/SHA256SUMS-${platform}"
@@ -54,7 +53,7 @@ jobs:
                   ;;
               esac
               cp "$asset" "$destination"
-            done
+            done < <(find "$platform_dir" -type f -print0)
           done
           assets=(release-assets/*)
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
