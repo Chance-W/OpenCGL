@@ -59,6 +59,20 @@ jobs:
         run: mvn -f plugins/pom.xml -pl PluginApiModule,OpenCGL-Base -am install -DskipTests
       - name: Build, test, and package
         run: python host/build/build.py package --output release/${{ matrix.label }}
+      - name: Validate platform release files
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="release/${{ matrix.label }}"
+          echo "Generated files for $output:"
+          find "$output" -maxdepth 1 -type f -exec ls -lh {} + | sort
+          test -f "$output/build-manifest.json"
+          test -f "$output/SHA256SUMS"
+          case "${{ matrix.label }}" in
+            windows-x64) test -f "$output"/OpenCGL-Tool-*-windows-x64.exe; test -f "$output"/OpenCGL-Tool-*-windows-x64.zip ;;
+            macos-x64|macos-arm64) test -f "$output"/OpenCGL-Tool-*-"${{ matrix.label }}".dmg; test -f "$output"/OpenCGL-Tool-*-"${{ matrix.label }}".tar.gz ;;
+            linux-x64) test -f "$output"/OpenCGL-Tool-*-linux-x64.deb; test -f "$output"/OpenCGL-Tool-*-linux-x64.tar.gz ;;
+          esac
       - name: Upload test diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
