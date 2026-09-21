@@ -1,5 +1,7 @@
 # Temp Config file
 conf/
+# Native release artifacts and generated manifests are produced by CI/local packaging.
+/release/
 # Compiled class file
 *.class
 

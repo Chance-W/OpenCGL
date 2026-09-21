@@ -66,6 +66,9 @@ python3 build/build.py package \
   --output target/release
 ```
 
+发布 Action 使用 `package --skip-tests`，只负责生成原生安装包；测试应在独立测试任务中执行。
+本机需要同时验证打包时，去掉 `--skip-tests` 即可。
+
 插件验证与宿主打包是两个独立步骤。如需同时验证公开插件和 其它 插件，先执行：
 
 ```bash

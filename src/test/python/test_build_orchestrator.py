@@ -121,6 +121,21 @@ class BuildOrchestratorTest(unittest.TestCase):
             self.assertNotIn("validatedPluginCount", manifest)
             self.assertEqual(manifest, json.loads(output.read_text(encoding="utf-8")))
 
+    def test_package_can_skip_tests_for_release_jobs(self):
+        build = load_build()
+        commands = []
+
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / "release"
+            build.run_package(
+                Path("/host"), output,
+                runner=lambda command, cwd: commands.append((command, cwd)),
+                package_builder=lambda _, destination: (destination / "fresh.txt").write_text("fresh\n"),
+                run_tests=False,
+            )
+
+        self.assertEqual([["mvn", "package", "-DskipTests"]], [command for command, _ in commands])
+
 
 if __name__ == "__main__":
     unittest.main()

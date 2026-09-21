@@ -24,6 +24,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v7
+      - name: Prepare clean release directory
+        run: rm -rf release && mkdir -p release
       - uses: actions/download-artifact@v4
         with:
           path: release

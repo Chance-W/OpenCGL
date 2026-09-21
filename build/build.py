@@ -302,10 +302,11 @@ def _find_installer(directory, extension):
     return candidates[0]
 
 
-def run_package(host_root, output, runner=run_command, package_builder=None):
+def run_package(host_root, output, runner=run_command, package_builder=None, run_tests=True):
     host_root = Path(host_root)
     output = Path(output).resolve()
-    runner(["mvn", "clean", "test"], host_root)
+    if run_tests:
+        runner(["mvn", "clean", "test"], host_root)
     runner(["mvn", "package", "-DskipTests"], host_root)
     # A checkout may contain tracked manifests from an older release. Remove
     # the destination before copying any new artifact so stale checksums cannot
@@ -363,6 +364,11 @@ def main():
         help="Additional local/private plugin reactor; may be specified more than once",
     )
     parser.add_argument("--output", type=Path, default=HOST_ROOT / "target" / "release")
+    parser.add_argument(
+        "--skip-tests",
+        action="store_true",
+        help="skip Maven test execution when packaging (useful for native release jobs)",
+    )
     args = parser.parse_args()
     java = current_java()
     print(f"Using Azul Zulu JDK {java['java.version']} from {os.environ.get('JAVA_HOME', 'PATH')}")
@@ -373,7 +379,7 @@ def main():
     else:
         if args.extra_plugins_dir:
             parser.error("--extra-plugins-dir is only valid with verify")
-        run_package(HOST_ROOT, args.output)
+        run_package(HOST_ROOT, args.output, run_tests=not args.skip_tests)
 
 
 if __name__ == "__main__":
