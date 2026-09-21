@@ -22,18 +22,24 @@ def verify_release(root):
     for checksum_file in sums:
         for line in checksum_file.read_text(encoding="utf-8").splitlines():
             expected, name = line.split(maxsplit=1)
-            artifact = checksum_file.parent / name.strip()
-            if not artifact.is_file():
-                matches = list(root.rglob(name.strip()))
-                if len(matches) == 1:
-                    artifact = matches[0]
-                elif not matches:
-                    raise RuntimeError(f"Missing artifact referenced by checksum: {artifact}")
-                else:
-                    raise RuntimeError(f"Ambiguous artifact referenced by checksum: {name.strip()}")
-            actual = hashlib.sha256(artifact.read_bytes()).hexdigest()
-            if actual != expected:
-                raise RuntimeError(f"Checksum mismatch: {artifact}")
+            name = name.strip()
+            direct = checksum_file.parent / name
+            candidates = [direct] if direct.is_file() else []
+            candidates.extend(path for path in root.rglob(name) if path != direct)
+            if not candidates:
+                raise RuntimeError(f"Missing artifact referenced by checksum: {direct}")
+            matching = [
+                path for path in candidates
+                if hashlib.sha256(path.read_bytes()).hexdigest() == expected
+            ]
+            if len(matching) == 1:
+                continue
+            if len(matching) > 1:
+                raise RuntimeError(f"Ambiguous matching artifact referenced by checksum: {name}")
+            actual = hashlib.sha256(candidates[0].read_bytes()).hexdigest()
+            raise RuntimeError(
+                f"Checksum mismatch: {candidates[0]} (expected {expected}, actual {actual})"
+            )
 
 
 if __name__ == "__main__":

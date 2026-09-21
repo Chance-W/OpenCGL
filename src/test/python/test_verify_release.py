@@ -66,6 +66,23 @@ class VerifyReleaseTest(unittest.TestCase):
                 (folder / "SHA256SUMS").write_text(f"{digest}  {artifact.name}\n")
             verifier.verify_release(root)
 
+    def test_uses_matching_hash_when_same_name_exists_in_multiple_download_dirs(self):
+        verifier = load_verifier()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            for platform in verifier.PLATFORMS:
+                folder = root / platform
+                folder.mkdir()
+                artifact = folder / f"OpenCGL-Tool-2.2.3-{platform}.zip"
+                artifact.write_bytes(platform.encode())
+                digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
+                if platform == "macos-arm64":
+                    stale = root / "old-artifact" / artifact.name
+                    stale.parent.mkdir()
+                    stale.write_bytes(b"stale")
+                (folder / "SHA256SUMS").write_text(f"{digest}  {artifact.name}\n")
+            verifier.verify_release(root)
+
 
 if __name__ == "__main__":
     unittest.main()
