@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Fail unless a release directory contains every supported platform and valid hashes."""
 
+import argparse
 import hashlib
 import sys
 from pathlib import Path
@@ -9,11 +10,12 @@ from pathlib import Path
 PLATFORMS = ("windows-x64", "macos-x64", "macos-arm64", "linux-x64")
 
 
-def verify_release(root):
+def verify_release(root, platforms=None):
     root = Path(root)
+    platforms = tuple(platforms or PLATFORMS)
     files = [path for path in root.rglob("*") if path.is_file()]
     names = {path.name for path in files}
-    missing = [platform for platform in PLATFORMS if not any(platform in name for name in names)]
+    missing = [platform for platform in platforms if not any(platform in name for name in names)]
     if missing:
         raise RuntimeError("Missing platform artifact(s): " + ", ".join(missing))
     sums = list(root.rglob("SHA256SUMS"))
@@ -43,4 +45,14 @@ def verify_release(root):
 
 
 if __name__ == "__main__":
-    verify_release(sys.argv[1])
+    parser = argparse.ArgumentParser(description="Verify release artifacts and SHA256SUMS files")
+    parser.add_argument("root", help="release directory or a single platform output directory")
+    parser.add_argument(
+        "--platform",
+        dest="platforms",
+        action="append",
+        choices=PLATFORMS,
+        help="verify only this platform (repeat for multiple platforms)",
+    )
+    args = parser.parse_args()
+    verify_release(args.root, args.platforms)

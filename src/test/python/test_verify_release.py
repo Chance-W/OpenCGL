@@ -83,6 +83,16 @@ class VerifyReleaseTest(unittest.TestCase):
                 (folder / "SHA256SUMS").write_text(f"{digest}  {artifact.name}\n")
             verifier.verify_release(root)
 
+    def test_can_verify_one_platform_output_locally(self):
+        verifier = load_verifier()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            artifact = root / "OpenCGL-Tool-2.2.3-macos-arm64.dmg"
+            artifact.write_bytes(b"mac artifact")
+            digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
+            (root / "SHA256SUMS").write_text(f"{digest}  {artifact.name}\n")
+            verifier.verify_release(root, ["macos-arm64"])
+
 
 if __name__ == "__main__":
     unittest.main()
