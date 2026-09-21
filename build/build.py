@@ -307,6 +307,10 @@ def run_package(host_root, output, runner=run_command, package_builder=None):
     output = Path(output).resolve()
     runner(["mvn", "clean", "test"], host_root)
     runner(["mvn", "package", "-DskipTests"], host_root)
+    # A checkout may contain tracked manifests from an older release. Remove
+    # the destination before copying any new artifact so stale checksums cannot
+    # be published alongside a new package.
+    output = _reset_directory(output)
     if package_builder is not None:
         package_builder(host_root, output)
         return
@@ -314,7 +318,6 @@ def run_package(host_root, output, runner=run_command, package_builder=None):
     version = read_software_version(host_root / "pom.xml")
     basename = release_basename(version, label)
     installer_type, portable_type = artifact_types(label)
-    output.mkdir(parents=True, exist_ok=True)
     work = host_root / "target" / "native-package"
     staging = stage_application(host_root, work / "input")
     java_home = Path(os.environ.get("JAVA_HOME", sys.prefix))

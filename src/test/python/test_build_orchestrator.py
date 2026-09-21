@@ -85,11 +85,17 @@ class BuildOrchestratorTest(unittest.TestCase):
         build = load_build()
         commands = []
 
-        build.run_package(
-            Path("/host"), Path("/release"),
-            runner=lambda command, cwd: commands.append((command, cwd)),
-            package_builder=lambda *_: None,
-        )
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / "release"
+            output.mkdir()
+            (output / "SHA256SUMS").write_text("stale\n")
+            build.run_package(
+                Path("/host"), output,
+                runner=lambda command, cwd: commands.append((command, cwd)),
+                package_builder=lambda _, destination: (destination / "fresh.txt").write_text("fresh\n"),
+            )
+            self.assertFalse((output / "SHA256SUMS").exists())
+            self.assertTrue((output / "fresh.txt").exists())
 
         self.assertEqual(["mvn", "clean", "test"], commands[0][0])
         self.assertEqual(["mvn", "package", "-DskipTests"], commands[1][0])
