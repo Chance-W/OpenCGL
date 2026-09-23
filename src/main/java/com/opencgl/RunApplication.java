@@ -12,6 +12,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.time.Duration;
+import java.util.concurrent.FutureTask;
+import com.opencgl.util.ShutdownCoordinator;
 
 import com.opencgl.base.listener.Config;
 import com.opencgl.base.model.Base;
@@ -53,6 +55,54 @@ public class RunApplication extends Application {
     private static final Logger logger = LoggerFactory.getLogger(RunApplication.class);
 
     private static FileLock lock;
+    private static volatile ShutdownCoordinator shutdown;
+    private static final FutureTask<Void> cleanup = new FutureTask<>(() -> {
+        try {
+            logger.info("Stopping theme listener");
+            ThemeManager.getInstance().shutdown();
+        } finally {
+            try {
+                logger.info("Disposing plugins and closing classloaders");
+                PluginParserHelper.closeAllClassLoaders();
+            } finally {
+                try {
+                    // Plugin disposal may itself enqueue configuration writes.
+                    if (!Config.awaitPendingWrites(Duration.ofSeconds(2))) {
+                        logger.warn("Configuration writes did not finish before shutdown");
+                    }
+                } finally {
+                    if (lock != null && lock.isValid()) {
+                        lock.release();
+                        lock.channel().close();
+                    }
+                }
+            }
+        }
+        return null;
+    });
+
+    public static void requestShutdown() {
+        ShutdownCoordinator current = shutdown;
+        if (current != null) current.shutdown();
+    }
+
+    @Override
+    public void stop() {
+        // Includes native macOS Dock/Cmd+Q and JavaFX implicit exit.
+        // Never wait for plugin cleanup on the JavaFX application thread.
+        requestShutdown();
+    }
+
+    private static void cleanupOnce() {
+        cleanup.run();
+        try { cleanup.get(); }
+        catch (Exception e) { throw new IllegalStateException("Shutdown cleanup failed", e); }
+    }
+
+    private static void forceShutdown() {
+        // Do not log here: a stuck plugin may hold a synchronous appender lock.
+        Runtime.getRuntime().halt(0);
+    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -73,6 +123,10 @@ public class RunApplication extends Application {
         if (locked) {
             return;
         }
+        primaryStage.setOnCloseRequest(event -> {
+            event.consume();
+            requestShutdown();
+        });
 
         // 应用保存的日志级别
         String logLevel = Config.readExternalConfigure(OpenCGLSelfProperties.LOG_LEVEL_KEY);
@@ -245,37 +299,27 @@ public class RunApplication extends Application {
                 stage.show();
                 return true;
             }
-            // 当程序关闭时释放文件锁和清理资源
+            shutdown = new ShutdownCoordinator(
+                Executors.newSingleThreadScheduledExecutor(),
+                command -> new Thread(command, "opencgl-shutdown-cleanup").start(),
+                RunApplication::cleanupOnce,
+                () -> { Platform.exit(); System.exit(0); },
+                RunApplication::forceShutdown, Duration.ofSeconds(5));
+            // System.exit and external JVM termination share the same cleanup task.
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                // 设置超时定时器，防止插件请求导致关闭卡死
-                ScheduledExecutorService timeoutScheduler = Executors.newSingleThreadScheduledExecutor();
-                timeoutScheduler.schedule(() -> {
-                    logger.warn("Shutdown timeout (5s), forcing exit to prevent hang");
-                    Runtime.getRuntime().halt(0); // 强制退出，不执行剩余的shutdown hook
-                }, 5, TimeUnit.SECONDS);
-
+                ScheduledExecutorService timeoutScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+                    Thread thread = new Thread(r, "opencgl-shutdown-watchdog");
+                    thread.setDaemon(true);
+                    return thread;
+                });
+                timeoutScheduler.schedule(RunApplication::forceShutdown, 5, TimeUnit.SECONDS);
                 try {
-                    ThemeManager.getInstance().shutdown();
-
-                    if (!Config.awaitPendingWrites(Duration.ofSeconds(2))) {
-                        logger.warn("Configuration writes did not finish before shutdown cleanup");
-                    }
-
-                    // 清理所有插件 ClassLoader
-                    PluginParserHelper.closeAllClassLoaders();
-                    logger.info("Plugin ClassLoaders cleaned up");
-
-                    // 释放文件锁
-                    lock.release();
-                    logger.info("File lock released");
-
-                    // 取消超时定时器
-                    timeoutScheduler.shutdownNow();
-                }
-                catch (IOException e) {
+                    cleanupOnce();
+                } catch (RuntimeException e) {
                     logger.error("Error during shutdown cleanup", e);
                 }
-            }));
+                // Keep watchdog active: another JVM hook could still be blocked.
+            }, "opencgl-shutdown-hook"));
         }
         catch (Exception e) {
             logger.error("", e);

@@ -17,7 +17,6 @@ import com.opencgl.service.PluginUpdateService;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -38,7 +37,7 @@ import com.opencgl.selfpane.OpenCGLVbox;
 import com.opencgl.selfpane.SettingPane;
 import com.opencgl.util.DialogUtil;
 import com.opencgl.util.AsyncUiPipeline;
-import com.opencgl.util.ShutdownCoordinator;
+import com.opencgl.RunApplication;
 
 import com.opencgl.util.PluginParserHelper;
 import com.opencgl.util.PluginIdentity;
@@ -386,24 +385,7 @@ public class NewMainController implements Initializable {
             // 显示 loading
             loadingMask.show(rootPane);
 
-            ShutdownCoordinator shutdown = new ShutdownCoordinator(
-                Executors.newSingleThreadScheduledExecutor(),
-                CompletableFuture.delayedExecutor(0, TimeUnit.MILLISECONDS),
-                () -> {
-                    PluginParserHelper.closeAllClassLoaders();
-                    logger.info("All plugin ClassLoaders closed");
-                },
-                () -> {
-                    Platform.exit();
-                    System.exit(0);
-                },
-                () -> {
-                    logger.warn("Shutdown timeout (5s), forcing halt");
-                    Runtime.getRuntime().halt(0);
-                },
-                java.time.Duration.ofSeconds(5)
-            );
-            shutdown.shutdown();
+            RunApplication.requestShutdown();
         });
 
         Tooltip closeTip = new Tooltip();

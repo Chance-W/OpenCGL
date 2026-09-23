@@ -1,9 +1,7 @@
 package com.opencgl.util;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
-import javafx.application.Platform;
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
 import javafx.scene.text.Font;
@@ -84,11 +82,9 @@ public class TooltipUtil {
         tooltip.setAnchorX(tooltip.getAnchorX() - tooltip.getWidth() / 2.0D);
         tooltip.setAnchorY(tooltip.getAnchorY() - tooltip.getHeight());
         if (time > 0L) {
-            (new Timer()).schedule(new TimerTask() {
-                public void run() {
-                    Platform.runLater(tooltip::hide);
-                }
-            }, time);
+            PauseTransition hideDelay = new PauseTransition(Duration.millis(time));
+            hideDelay.setOnFinished(event -> tooltip.hide());
+            hideDelay.play();
         }
     }
 
@@ -108,4 +104,3 @@ public class TooltipUtil {
         return control.getBoundsInParent().getHeight();
     }
 }
-

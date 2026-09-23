@@ -2,14 +2,13 @@ package com.opencgl.util;
 
 import java.time.Duration;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** Runs shutdown cleanup once and cancels the forced-exit timer after success. */
+/** Keeps the watchdog alive through cleanup AND the exit callback. */
 public final class ShutdownCoordinator {
     private final ScheduledExecutorService scheduler;
     private final Executor cleanupExecutor;
@@ -18,6 +17,7 @@ public final class ShutdownCoordinator {
     private final Runnable forcedHalt;
     private final Duration timeout;
     private final AtomicBoolean started = new AtomicBoolean();
+    private final AtomicBoolean finished = new AtomicBoolean();
 
     public ShutdownCoordinator(
         ScheduledExecutorService scheduler,
@@ -40,17 +40,29 @@ public final class ShutdownCoordinator {
             return;
         }
         ScheduledFuture<?> timeoutTask = scheduler.schedule(
-            forcedHalt, timeout.toMillis(), TimeUnit.MILLISECONDS
+            this::haltOnce, timeout.toMillis(), TimeUnit.MILLISECONDS
         );
-        CompletableFuture.runAsync(cleanup, cleanupExecutor).whenComplete((ignored, failure) -> {
+        try {
+            cleanupExecutor.execute(() -> {
+                try {
+                    cleanup.run();
+                    if (!finished.get()) normalExit.run();
+                    finished.set(true);
+                } catch (Throwable failure) {
+                    haltOnce();
+                } finally {
+                    timeoutTask.cancel(false);
+                    scheduler.shutdown();
+                }
+            });
+        } catch (RuntimeException rejected) {
+            haltOnce();
             timeoutTask.cancel(false);
-            scheduler.shutdownNow();
-            if (failure == null) {
-                normalExit.run();
-            }
-            else {
-                forcedHalt.run();
-            }
-        });
+            scheduler.shutdown();
+        }
+    }
+
+    private void haltOnce() {
+        if (finished.compareAndSet(false, true)) forcedHalt.run();
     }
 }
